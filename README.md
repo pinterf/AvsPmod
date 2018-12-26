@@ -113,6 +113,7 @@ Development:
 <https://github.com/AvsPmod/AvsPmod>
 
 Releases:
+<https://github.com/gispos/AvsPmod/releases>
 <https://github.com/AvsPmod/AvsPmod/releases>
 
 Filter database wiki:
