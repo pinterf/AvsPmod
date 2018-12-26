@@ -177,7 +177,7 @@ for i, (dsr, files) in enumerate(data_files):
 dirs = (
     ('help', None, None),
     ('translations', None, None), 
-    ('macros', ('.py'), None), 
+    ('macros', ('.py', '.txt'), None), 
     ('tools', ('.py', '.presets'), ('avs2avi.exe', 'avs2avi_src.zip'))
        )
 for dir, ext_filter, include in dirs:
