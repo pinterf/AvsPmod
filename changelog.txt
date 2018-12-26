@@ -1,6 +1,77 @@
 CHANGELOG
 =========
 
+GPo mod:
+Large Address Aware Flag is set (32bit version).
+Version is based on 2.5.1 bug-fix Version for "only one prefetcher allowed" see Doom9 Forum.
+
+--------------------------
+Version 2.5.1.17 [2018-12-25] GPo
+--------------------------
+- Added to Trim Editor the option 'Single clips' with custom prefix, this insert c0=Trim(?,?)..cn=Trim(?,?) commands.
+- Trying to cancel the script if the message 'Error requesting frame' in a non-ending loop. You must press 'Cancel' on the message box.
+- Trying to fix some rare bugs
+--------------------------
+Version 2.5.1.16 [2018-12-08] GPo
+--------------------------
+- AvisynthPlus (pinterf) fork Neo r2822 compatible, added 'func' to avisynth value parsing
+
+--------------------------
+Version 2.5.1.15 [2018-11-17] GPo
+--------------------------
+- Removed wrong Rec2020 display conversion. Sorry.
+- Removed 'Restore bookmarks'
+- Improved status bar flickering.
+- Improved DoubleClick event on video window, reduced flickering on the bottom
+- Improved add 'New Tab' flickering if the script is loading or copying
+- Added 'Options > Misc > On first script load bookmarks from script'. If tab count 1, automatically load bookmarks from script.
+- Added 'Options > Misc > Tabs changing load bookmarks from script'. Automatically load bookmarks from script if tab is changed.
+--- in one session each script can now have its own bookmarks.
+- Added 'Video > Save view pos on tab change', saves, restores the XY display coordinates on tab change if the clip not in the same group.
+- WndProc features expanded, AvsPmod can receive WM_COPYDATA
+
+--------------------------
+Version 2.5.1.14 [2018-11-06] GPo
+--------------------------
+- Changed, Bookmarks now in SubMenus 'Video > Bookmarks', added Menus' Bookmarks to script' and 'Bookmarks from script',
+--- also added to Tab Context menu ' Bookmarks to script' and 'Bookmarks from script' and 'Restore bookmarks' last one is beta.
+--- 'Restore bookmarks': 
+------  if you delete all bookmarks at once, the current script stores first the global bookmarks, and you can restore this bookmarks to globals. 
+------  In the future maybe more or I will delete it. (it's experimental) You do not have to use it.
+- Changed 'Options > Video > Error message font', font color is now saved, drawback: button will never shown the selected font.
+- Add YUV to RGB display conversion for Rec2020 (TV level).
+- Added format detection for avs_plus colorspaces.
+- Add WndProc for custom messages from and to other programs. Win User only. see 'AvsPmod_WndProc.txt'
+- Fixed a few unimportant bugs
+
+--------------------------
+Version 2.5.1.12 [2018-09-29] GPo
+--------------------------
+- Add Execute macro-file automatically when a avs file over cmd is processed, file must be located (rename it) in program\macros\startup_avs.pys
+- Add Execute macro-file automatically when a source file over cmd is processed, file must be located (rename it) in program\macros\startup.pys
+- Add Execute macro-file within comandline '-em': AvsPmod "G:\Video\Star.avs" "-em D:\AvsPmod\macros\MyHidenMacro.pys"
+- Add If a *.py or *.pys file is passed as an argument via cmd, or with the file open dialog, it will be treated as a macro (Execute Macro), 
+--- same behavior as with parameter -em, except file ext must be .py or .pys
+- Add comandline parameter -sf, -sf 212 force AvsPmod to show the frame number 212 after startup
+- Change the checked status "Video > Play video > Drop frames" now at startup checked=False
+- Add "Option > Save/Load > Ask to save the script at program exit > Only when script exists"
+- Add Menu "Edit > Toggle text wrap"
+- Add Menu "Video > Toggle extended left move" - allows the video display to move more to the left (important to me)
+--- video must be wider than half window width and no zoom fit or fill may be set.
+- Error handling on AvsPmod x64: Error "FormatTime - %d cannot convert float" (only handling no fix) - avisynth returns NaN value, no idea how I can fix this
+- This makes me happy;), add DoubleClick event on video window, toggle min script lines "0, default"
+- Add Zoom with left mouse button down and wheel rotation (default control down and wheel rotation) I am a mouse junkie..)
+- Add Already existing option "invert wheel direction for scrolling the tabs" inverts also zoom wheel direction 
+- Add "Option > Video > Mouse Wheel Function" -  Tabs scrolling default, Frames steps (I have with wheel frames steps no problems)
+- Add "Option > Misc > Invert scroll wheel direction (Frame)", also change text "Invert scroll wheel direction (Tabs, Zoom)"
+- Add Toggle the zoom (100%, 200%) with left button pressed and right button click. If zoom is fit or fill or <> 100%, zoom does change to 100%
+- Changed zoom save at program exit, only 100%, fit or fill is now saved. Also limit the mouse wheel zoom factor min,max: 0.10, 20.0
+- Improved on some functions displayed cursor wait status, clearer indication "program processed, picture is not ready"
+- Change the frame number-Text Field Context Menu click event, on click shows now the selected frame number, no keyboard key 'enter' needed
+- A bit of the German language file edited, well.
+- Some other changes
+
+--------------------------------------------------------------------------------------------------------------------
 
 Version 2.5.1 [2013-06-25]
 --------------------------
