@@ -1,0 +1,2 @@
+# Insert your Python code and rename the file to "startup_avs.pys" 
+# the file does execute  as macro at ProzessArguments (Comandline), only for "avs, vpy" files

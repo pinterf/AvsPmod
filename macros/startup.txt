@@ -1,0 +1,2 @@
+# Insert your Python code and rename the file to "startup.pys" 
+# the file does execute  as macro at ProzessArguments (Comandline), for all files except "avs, vpy"
