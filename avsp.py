@@ -5206,9 +5206,9 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
         self.oldSliderWindowShown = None
         self.oldBoolSliders = None
         self.xo = self.yo = 5
-        self.saveViewPos = True        # GPo, keep view XY and zoom for each script
+        self.saveViewPos = False        # GPo, keep view XY and zoom for each script
         self.play_speed_factor = 1.0
-        self.play_drop = False         # GPo 2018 change to False
+        self.play_drop = False          # GPo 2018 change to False
         self.playing_video = False
         self.getPixelInfo = False
         self.sliderOpenString = '[<'
