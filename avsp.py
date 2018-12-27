@@ -7467,7 +7467,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                     ),
                 ),
                 (_('Keep variables on refreshing'), '', self.OnMenuVideoReuseEnvironment, _('Create the new AviSynth clip on the same environment. Useful for tweaking parameters'), wx.ITEM_CHECK, False),
-                (_('Save view pos on tab change'), '', self.OnMenuSaveViewPos, _('Save last view position and zoom on tab change'), wx.ITEM_CHECK, True),
+                (_('Save view pos on tab change'), '', self.OnMenuSaveViewPos, _('Save last view position and zoom on tab change'), wx.ITEM_CHECK, False),
                 (''),
                 (_('Save image as...'), '', self.OnMenuVideoSaveImage, _('Save the current frame as a bitmap')),
                 (_('Quick save image'), '', self.OnMenuVideoQuickSaveImage, _('Save the current frame as a bitmap with a default filename, overwriting the file if already exists')),
@@ -14570,8 +14570,8 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                     wx.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
                 ID = wx.MessageBox(u'\n\n'.join((_('Error requesting frame {number}').format(number=framenum),
                               error)), _('Error'), style=wx.OK|wx.CANCEL|wx.ICON_ERROR)
-                if ID == wx.Cancel:
-                    for index in xrange(self.scriptNotebook.GetPageCount()):  # GPo ID, wx,Cancel, AVI = None
+                if ID == wx.CANCEL:
+                    for index in xrange(self.scriptNotebook.GetPageCount()):  # GPo ID, wx.CANCEL, AVI = None
                         script = self.scriptNotebook.GetPage(index)
                         script.AVI = None
 
@@ -15211,8 +15211,8 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
         if not frame_nr.isdigit():
             frame_nr = 0
         ID = wx.MessageBox(u'\n\n'.join((_('Error requesting frame {number}').format(number=frame_nr),
-                           script.AVI.clip.get_error())), _('Error'), style=wx.OK|wx.Cancel|wx.ICON_ERROR)
-        if ID == wx.Cancel:
+                           script.AVI.clip.get_error())), _('Error'), style=wx.OK|wx.CANCEL|wx.ICON_ERROR)
+        if ID == wx.CANCEL:
             self.HidePreviewWindow()
             for index in xrange(self.scriptNotebook.GetPageCount()):
                 script = self.scriptNotebook.GetPage(index)
@@ -15245,16 +15245,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 bmp = wx.EmptyBitmap(w,h)
                 dc.SelectObject(bmp)
                 if not script.AVI.DrawFrame(frame, dc):
-                    """  # GPo trying to cancel the process
-                    ID = wx.MessageBox(u'\n\n'.join((_('Error requesting frame {number}').format(number=frame),
-                                       script.AVI.clip.get_error())), _('Error'), style=wx.OK|wx.Cancel|wx.ICON_ERROR)
-                    if ID == wx.Cancel:   # GPo wx.Cancel, ID, AVI = None
-                        self.HidePreviewWindow()
-                        for index in xrange(self.scriptNotebook.GetPageCount()):
-                            script = self.scriptNotebook.GetPage(index)
-                            script.AVI = None
-                    """
-                    self.ShowErrorMessage(script, frame) # GPo save code, moore then once used
+                    self.ShowErrorMessage(script, frame)  # GPo
                     return
                 self.PaintCropRectangles(dc, script)
                 self.PaintTrimSelectionMark(dc, script, frame)
@@ -15270,16 +15261,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 except:
                     self.videoWindow.PrepareDC(dc)
                 if not script.AVI.DrawFrame(frame, dc):
-                    """
-                    ID = wx.MessageBox(u'\n\n'.join((_('Error requesting frame {number}').format(number=frame),
-                                       script.AVI.clip.get_error())), _('Error'), style=wx.OK|wx.Cancel|wx.ICON_ERROR)
-                    if ID == wx.Cancel:
-                        self.HidePreviewWindow()
-                        for index in xrange(self.scriptNotebook.GetPageCount()):
-                            script = self.scriptNotebook.GetPage(index)
-                            script.AVI = None
-                    """
-                    self.ShowErrorMessage(script, frame)
+                    self.ShowErrorMessage(script, frame)  # GPo
                     return
         else:
             dc = wx.MemoryDC()
@@ -15291,16 +15273,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 bmp = wx.EmptyBitmap(w,h)
                 dc.SelectObject(bmp)
                 if not script.AVI.DrawFrame(frame, dc):
-                    """
-                    ID = wx.MessageBox(u'\n\n'.join((_('Error requesting frame {number}').format(number=frame),
-                                       script.AVI.clip.get_error())), _('Error'), style=wx.OK|wx.Cancel|wx.ICON_ERROR)
-                    if ID == wx.Cancel:
-                        self.HidePreviewWindow()
-                        for index in xrange(self.scriptNotebook.GetPageCount()):
-                            script = self.scriptNotebook.GetPage(index)
-                            script.AVI = None
-                    """
-                    self.ShowErrorMessage(script, frame)
+                    self.ShowErrorMessage(script, frame)  # GPo
                     return
                 if self.flip:
                     img = bmp.ConvertToImage()
