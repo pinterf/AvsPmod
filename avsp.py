@@ -47,7 +47,11 @@ import os
 import sys
 import platform
 import traceback
-import cPickle
+try:
+    import cPickle # Python 2
+except ImportError:
+    import pickle as cPickle # Python 3
+
 import shutil
 import string
 import array
@@ -59,14 +63,28 @@ import bisect
 import random, math, copy
 import subprocess, shlex
 import socket
-import thread
+
+# thread module was deprecated in python 3.
+try:
+    import thread
+except:
+    pass
 import threading
 import time
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO # not 100% the same, ComvertError can occur
+    # Python 3: The StringIO and cStringIO modules are gone.
+    # Instead, import the io module and use io.StringIO or io.BytesIO for text and data respectively.
+
 import textwrap
 import ctypes
 if os.name == 'nt':
-    import _winreg
+    try:
+        import _winreg
+    except ImportError:
+        import winreg # renamed to winreg in Python 3
     #import ctypes.wintypes
     # GPo, WndProc
     from ctypes.wintypes import HANDLE, LPVOID, LONG, WPARAM, LPARAM, UINT, DWORD
@@ -79,10 +97,21 @@ if os.name == 'nt':
 import tempfile
 import zlib
 import glob
-import urllib2
+
+# The urllib2 module has been split across several modules in Python 3 named urllib.request and urllib.error. The 2to3 tool will automatically adapt imports when converting your sources to Python 3.
+try:
+    import urllib2
+except ImportError:
+    import urllib.request
+
 import cgi
 from hashlib import md5
-import __builtin__
+try:
+    import __builtin__ as builtins
+except ImportError:
+    #The __builtin__ module was renamed to builtins in Python3.
+    import builtins
+
 import collections
 
 if hasattr(sys,'frozen'):
@@ -98,7 +127,10 @@ def _(s):
         if s2:
             return s2.replace(r'\n','\n')
     return s
-__builtin__._ = _
+
+builtins._ = _ # Python3
+# Python2 only: __builtin__._ = _
+
 encoding = sys.getfilesystemencoding()
 
 import wx
@@ -2548,14 +2580,14 @@ class STCPrintout(wx.Printout):
         rect[1] += self.header_height
         rect[3] -= self.header_height
         if self.debuglevel > 0:
-            print  "prepare rect: ", rect
+            print("prepare rect: ", rect)
         while self.start_points[-1] < stc_len:
             self.start_points.append(self.stc.FormatRange(False,
                                     self.start_points[-1], stc_len,
                                     dc, dc, rect, rect))
             if self.debuglevel > 0:
                 if self.start_points[-1] == stc_len:
-                    print "prepare printing - reached end of document: %d" % stc_len
+                    print("prepare printing - reached end of document: %d" % stc_len)
                 else:
                     print ("prepare printing - page %d first line: %d" % (
                            len(self.start_points), self.start_points[-1]))
@@ -2610,11 +2642,11 @@ class STCPrintout(wx.Printout):
                                     dc, dc, rect, rect)
         self.stc.SetEdgeMode(edge_mode)
         if self.debuglevel > 0:
-            print  "print rect: ", rect
+            print("print rect: ", rect)
             if next == stc_len:
-                print "printing - reached end of document: %d" % stc_len
+                print("printing - reached end of document: %d" % stc_len)
             else:
-                print "printing - page %d first line: %d" % (page + 1, next)
+                print("printing - page %d first line: %d" % (page + 1, next))
 
     def _drawPageHeader(self, dc, page):
         """Draw the page header into the DC for printing
@@ -2888,7 +2920,11 @@ class AsyncCall:
     def Wait(self, timeout=None, failval=None):
         self.complete.wait(timeout)
         if self.exception:
-            raise self.exception[0], self.exception[1], self.exception[2]
+            # Python2: 
+            # raise self.exception[0], self.exception[1], self.exception[2]
+            # port to Python3: https://portingguide.readthedocs.io/en/latest/exceptions.html
+            import six
+            six.reraise(self.exception[0], self.exception[1], self.exception[2])
         if self.result is self.noresult:
             return failval
         return self.result
@@ -3515,7 +3551,7 @@ class AvsFunctionDialog(wx.Dialog):
                         info.append((filename, filtername, filterargs, ftype))
                 else:
                     info = None
-            except (urllib2.URLError, urllib2.HTTPError), err:
+            except (urllib2.URLError, urllib2.HTTPError) as err:
                 wx.MessageBox(u'\n\n'.join((os.path.basename(filename), unicode(err))),
                               _('Error'), style=wx.OK|wx.ICON_ERROR)
                 continue
@@ -5434,7 +5470,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                         else:
                             wx.MessageBox(_('%s translation file updated.  No new messages to translate.')
                                             % i18n.display_name(self.options['lang']), _('Translation updated'))
-                except NameError, err:
+                except NameError as err:
                     pass
             else:
                 wx.MessageBox(_("%s language couldn't be loaded") % i18n.display_name(self.options['lang']),
@@ -6083,9 +6119,9 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 else:
                     import avisynth
                 break
-            except OSError, err:
+            except OSError as err:
                 if __debug__:
-                    print err
+                    print(err)
                 exception = True
                 if self.options['usealtdir']:
                     if not path_used:
@@ -6622,7 +6658,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                                 value = str(eval(value))
                             except:
                                 if not quiet:
-                                    print _('Error'), 'ParseAvisynthScript() try eval(%s)' % value
+                                    print(_('Error'), 'ParseAvisynthScript() try eval(%s)' % value)
                             else:
                                 text += ['=', value]
                                 varnameDict[varname] = value
@@ -10919,7 +10955,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 old_zoomfactor = 1
             else:
                 old_zoomfactor = self.zoomfactor
-                if self.zoomfactor <> 1: self.zoomfactor = 1
+                if self.zoomfactor != 1: self.zoomfactor = 1
                 else: self.zoomfactor = 2
 
             if self.videoWindow.HasCapture():
@@ -11860,7 +11896,12 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
         if self.options['multilinetab']:
             rows = self.scriptNotebook.GetRowCount()
         iMax = 0
-        re_newfile = re.compile(ur'\*?\s*{0}\s*\((\d+)\)\s*(?:\.avsi?)?$'.format(self.NewFileName), re.I)
+        # Python 3 has no ur'...' raw unicode string syntax. Use r'...' instead:
+        # To create 2.7/3.x-Python compatible code, use conditional code that'll decode the byte string 
+        # produced by r'...' to a unicode object only on Python 2. Use module six to help with that:
+        from six import u
+        re_newfile = re.compile(u(r'\*?\s*{0}\s*\((\d+)\)\s*(?:\.avsi?)?$').format(self.NewFileName), re.I)
+        # old Python2-only method: re_newfile = re.compile(ur'\*?\s*{0}\s*\((\d+)\)\s*(?:\.avsi?)?$'.format(self.NewFileName), re.I)
         for i in range(index):
             title = self.scriptNotebook.GetPageText(i)
             match = re_newfile.match(title)
@@ -15168,7 +15209,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
             try:
                 with open(previewname, 'wb') as f:
                     f.write(txt)
-            except IOError, err: # errno 13 -> permission denied
+            except IOError as err: # errno 13 -> permission denied
                 if err.errno != 13 or altdir_tried:
                     raise
                 dirname = self.programdir
@@ -15404,7 +15445,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                         frame = self.currentframenum
                         increment = 1
                     if debug_stats:
-                        print debug_stats_str
+                        print(debug_stats_str)
                     if not AsyncCall(self.ShowVideoFrame, frame + increment,
                                      check_playing=True, focus=False).Wait():
                         return
@@ -15443,12 +15484,12 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                     self.play_initial_frame = self.currentframenum
                     self.play_initial_time = time.time()
                     if debug_stats:
-                        print 'speed_factor: {0}, required_interval: {1} '\
+                        print('speed_factor: {0}, required_interval: {1} '\
                               'interval: {2} interval_factor: {3}'.format(
-                              self.play_speed_factor, interval0, interval, factor)
+                              self.play_speed_factor, interval0, interval, factor))
                         self.increment = 0
                         self.previous_time = self.play_initial_time
-                    self.play_timer_id = self.timeSetEvent(interval,
+                        self.play_timer_id = self.timeSetEvent(interval,
                         self.play_timer_resolution, self.callback_c, factor, periodic)
 
                 WindowsTimer(interval, playback_timer)
@@ -15535,7 +15576,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                             frame = self.parent.currentframenum
                             increment = 1
                         if debug_stats:
-                            print debug_stats_str
+                            print(debug_stats_str)
                         if not self.parent.ShowVideoFrame(frame + increment,
                                                           check_playing=True, focus=False):
                             return
@@ -15549,9 +15590,9 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 interval = int(round(interval * factor))
                 self.play_timer = RunVideoTimer(self, factor)
                 if debug_stats:
-                    print 'speed_factor: {0}, required_interval: {1} '\
+                    print('speed_factor: {0}, required_interval: {1} '\
                           'interval: {2} interval_factor: {3}'.format(
-                          self.play_speed_factor, interval0, interval, factor)
+                          self.play_speed_factor, interval0, interval, factor))
                 self.play_timer.Start(interval)
 
     def RunExternalPlayer(self, path=None, script=None, args=None, prompt=True):
@@ -18215,7 +18256,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
             if wait:
                 return cmd, cmd.wait()
             return cmd
-        except Exception, err:
+        except Exception as err:
             try:
                 if cmd.poll() is None:
                     cmd.terminate()
@@ -18620,7 +18661,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 # Check for syntax errors (thows SyntaxError exception with line number)
                 try:
                     compile('\n'.join(macroLines+['pass']), macrofilename, 'exec')
-                except SyntaxError, e:
+                except SyntaxError as e:
                     if not str(e).startswith("'return' outside function"):
                         raise
                 # Wrap the macro in a function (allows top-level variables to be treated "globally" within the function)
@@ -18646,13 +18687,16 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 self.macroVars['avsp'].Last = self.macroVars['last']
                 def MacroHelp(function):
                     '''help(function)\nPrint the function's description of use'''
-                    print self.FormatDocstring(function)
+                    print(self.FormatDocstring(function))
                 self.macroVars['help'] = MacroHelp
                 self.macroVars['_'] = _
                 # Execute the macro
                 def MacroFunction():
                     try:
-                        exec macrotxt in self.macroVars, {}
+                        exec(macrotxt in self.macroVars, {})
+                        # todo check it: if there are problems in Python 3:
+                        # you cannot change local variables in function scope in Python 3 
+                        # using exec, even though it was possible in Python 2. Not even previously declared variables
                     except:
                         ShowException()
                     if (hash(repr(self.optionsMacros[macrobasename].items())) != hash_pre and
