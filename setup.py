@@ -168,22 +168,31 @@ data_files = [
             ]
         ),
         ('lib', lib_extra),
-        ('src', [
-            'run.py',
-            'avsp.py',
-            'wxp.py',
-            'avisynth.py',
-            'avisynth_cffi.py',
-            'pyavs.py',
-            'pyavs_avifile.py',
-            'build.py',
-            'setup.py',
-            'i18n.py',
-            'AvsP.ico',
-            'icons.py',
-            'global_vars.py',
-            'build_instructions_windows.txt',
-        ]),
+        ('src', 
+                [
+                'run.py',
+                'avsp.py',
+                'wxp.py',
+                'avisynth.py',
+                'avisynth_cffi.py',
+                'pyavs.py',
+                'pyavs_avifile.py',
+                'build.py',
+                'setup.py',
+                'i18n.py',
+                'AvsP.ico',
+                'icons.py',
+                'global_vars.py',
+                'build_instructions_windows.txt',
+                'avisynth_c.h', # or perhaps include it only for x64?
+                ]
+         ),
+         ('src\\avs', [ # or perhaps include them only for x64?
+                      'avs\\types.h',
+                      'avs\\config.h',
+                      'avs\\capi.h'
+                      ]
+         )
     ]
 
 # todo:
