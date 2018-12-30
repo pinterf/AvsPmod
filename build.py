@@ -78,11 +78,12 @@ def main():
     programdirname = os.path.join(tempdir, global_vars.name)
     
     # Create/update the master translation file
-    print '\nCreating translation file...'
+    print('\nCreating translation file...')
     if not i18n.main():
         return
     
     # Create the program executable using py2exe
+    # todo: py2exe is not available for Python v3.7
     if os.system('""%s" -O setup.py py2exe -d %s"' % (pythonexe, programdirname)):
         return
     
@@ -104,19 +105,19 @@ def main():
                     dir = os.path.join(vs_path, 'Common7', 'IDE')
                     if os.path.isdir(dir):
                         os.environ['PATH'] += os.pathsep + dir
-                        print '\nSetting large address aware flag...'
+                        print('\nSetting large address aware flag...')
                         if os.system('""%s" /LARGEADDRESSAWARE "%s""' % 
                                 (editbin, os.path.join(programdirname, 'run.exe'))):
-                            print 'Failed'
+                            print('Failed')
                         else: break
         else:
-            print "\neditbin not found.  Large address aware flag not set"
+            print("\neditbin not found.  Large address aware flag not set")
     
     # Compress the files with UPX, if available
     if x86_64:
-        print "\nSkipping UPX'ing on x86-64 builds"
+        print("\nSkipping UPX'ing on x86-64 builds")
     elif  __debug__:
-        print "\nDebug mode, skipping UPX'ing"
+        print("\nDebug mode, skipping UPX'ing")
     else:
         if not os.path.isfile(upx):
             upx = isinpath('upx.exe')
@@ -128,7 +129,7 @@ def main():
                         args.append(os.path.join(root, file))
             subprocess.call(args)
         else:
-            print "\nUPX not found"
+            print("\nUPX not found")
     
     # Manage the files
     os.rename(os.path.join(programdirname, 'run.exe'), 
@@ -141,13 +142,13 @@ def main():
     if not os.path.isfile(exe7z):
         exe7z = isinpath('7z.exe')
     if exe7z:
-        print '\nCreating 7z archive...'
+        print('\nCreating 7z archive...')
         zipname = zipname.replace('.zip', '.7z')
         if os.path.isfile(zipname):
             os.remove(zipname)
         subprocess.call([exe7z, 'a', '-bd', '-r', zipname, programdirname])
     else:
-        print '\nCreating ZIP archive...'
+        print('\nCreating ZIP archive...')
         if os.path.isfile(zipname):
             os.remove(zipname)
         zip = zipfile.ZipFile(zipname, 'w', zipfile.ZIP_DEFLATED)
