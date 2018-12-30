@@ -22,8 +22,7 @@
 #     cffi and its dependencies (tested on v0.8.1)
 #         pycparser
 #         Visual Studio 2008
-#     avisynth_c.h (interface 5, or at least 3 + colorspaces from 5,
-#                   tested with the header used by x264)
+#     avisynth_c.h (interface 6, AVS+, now part of the project)
 # Optional:
 #     global_vars.py (for specifying a custom shared library location)
 #
