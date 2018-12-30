@@ -29,3 +29,6 @@ AvsPmod/
 tempfilterout.txt
 _last_session_.ses
 __translation_new.py
+.VS/*
+BuildTools/*
+build/*
