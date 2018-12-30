@@ -47,9 +47,9 @@ except:
 if os.name == 'nt':
     if __debug__:
         if directory:
-            print 'Using a custom AviSynth directory:', directory
+            print('Using a custom AviSynth directory:', directory)
         else:
-            print 'Using AviSynth from PATH'
+            print('Using AviSynth from PATH')
     path = os.path.join(directory, 'avisynth.dll')
     if isinstance(path, unicode): # fix for https://bugs.python.org/issue29082
         path = path.encode('mbcs')
@@ -58,9 +58,9 @@ if os.name == 'nt':
 else:
     if __debug__:
         if directory:
-            print 'Using a custom AvxSynth directory:', directory
+            print('Using a custom AvxSynth directory:', directory)
         else:
-            print 'Using AvxSynth from LD_LIBRARY_PATH'
+            print('Using AvxSynth from LD_LIBRARY_PATH')
     path = os.path.join(directory, 'libavxsynth.so')
     avidll = ctypes.CDLL(path)
     FUNCTYPE = ctypes.CFUNCTYPE
@@ -1205,49 +1205,49 @@ AVS_Value.avs_release_value=avs_release_value
 def test():
     
     env = AVS_ScriptEnvironment(3)
-    print 'environment created:', env
+    print('environment created:', env)
     err = env.get_error()
     if err is not None:
-        print 'error:', err
+        print('error:', err)
         return
-    print 'checking for interface 3:', env.check_version(3)
-    print 'checking for interface 33:', env.check_version(33)
-    print env.invoke('VersionString')
+    print('checking for interface 3:', env.check_version(3))
+    print('checking for interface 33:', env.check_version(33))
+    print(env.invoke('VersionString'))
     
-    print '\nsome internal functions...'
+    print('\nsome internal functions...')
     for function_name in env.get_var('$InternalFunctions$').split()[:10]:
         try:
             params = env.get_var('$Plugin!' + function_name + '!Param$')
-        except AvisynthError, err:
+        except AvisynthError as err:
             if str(err) != 'NotFound': raise
         else:
-            print ' ', function_name, params
+            print(' ', function_name, params)
     var_name, value = 'test var', 'some text'
-    print '\nsetting a string variable with value {0}'.format(repr(value))
+    print('\nsetting a string variable with value {0}'.format(repr(value)))
     env.set_var(var_name, value)
-    print 'value retrieved:', repr(env.get_var(var_name)) # check save_string
-    print '\ninvoking...'
+    print('value retrieved:', repr(env.get_var(var_name))) # check save_string
+    print('\ninvoking...')
     try:
 #        ret = env.invoke('Version')
         ret = env.invoke('BlankClip', [100, 200, 300])
 #        ret = env.invoke('Eval', 
 #                         ['assert(false, "assert message")', 'script title'])
-    except AvisynthError, err:
-        print 'error:', env.get_error()
+    except AvisynthError as err:
+        print('error:', env.get_error())
     else:
         if isinstance(ret, AVS_Clip):
             clip = ret
             AVS_Value(AVS_Value(clip, env), env).get_value() # test passing clip
-            print clip.get_video_info()
+            print(clip.get_video_info())
             frame = clip.get_frame(5)
             err = clip.get_error()
             if err:
-                print 'error:', err
+                print('error:', err)
             else:
-                print frame
+                print(frame)
                 frame.get_read_ptr()[0:20]
         else:
-            print 'value:', ret
-    
+            print('value:', ret)
+
 if __name__ == '__main__':
     test()
