@@ -72,14 +72,30 @@ weak_dict = weakref.WeakKeyDictionary()
 
 
 # Interface: 3 + 5's new colorspaces and some of its other additions
+# Interface: 6 and Avisynth+ additions PF 2018dec
 
 
 # can't access define, enums or inline functions from ctypes
 
+# in avisynth.cffi_all enums and consts from avisynth_c.h are ...
+# so in avs class we should define them in the same way as in avisynth_h.c
+# these constants can be accessed from avisynth.py with avs. prefix.
+# e.g. avisynth_c.h defined AVS_PLANAR_U as 
+#   AVS_PLANAR_U=1<<1
+# in avisynth_cffi.py it should be declared as
+#   AVS_PLANAR_U = ..., // 1<<1,
+# Here in avisynth.py the constants are accessed as avs.XXXXX e.g. avs.AVS_PLANAR_U, example: if plane in (avs.AVS_PLANAR_U, avs.AVS_PLANAR_V):
+# From pyavs.py constants can be accessed as avisynth.avs.XXXXX, e.g. avisynth.avs.AVS_PLANAR_U
 
 class avs(): # lowercase for compatibility with the cffi bindings
     
     # Constants
+    AVS_SAMPLE_INT8  = 1 << 0
+    AVS_SAMPLE_INT16 = 1 << 1
+    AVS_SAMPLE_INT24 = 1 << 2
+    AVS_SAMPLE_INT32 = 1 << 3
+    AVS_SAMPLE_FLOAT = 1 << 4
+
     AVS_PLANAR_Y = 1 << 0
     AVS_PLANAR_U = 1 << 1
     AVS_PLANAR_V = 1 << 2
@@ -96,69 +112,148 @@ class avs(): # lowercase for compatibility with the cffi bindings
     AVS_PLANAR_G_ALIGNED = AVS_PLANAR_G | AVS_PLANAR_ALIGNED
     AVS_PLANAR_B_ALIGNED = AVS_PLANAR_B | AVS_PLANAR_ALIGNED
 
-    AVS_SAMPLE_INT8  = 1 << 0
-    AVS_SAMPLE_INT16 = 1 << 1
-    AVS_SAMPLE_INT24 = 1 << 2
-    AVS_SAMPLE_INT32 = 1 << 3
-    AVS_SAMPLE_FLOAT = 1 << 4
-
     # Colorspace properties
+    AVS_CS_YUVA = 1 << 27
     AVS_CS_BGR = 1 << 28
     AVS_CS_YUV = 1 << 29
     AVS_CS_INTERLEAVED = 1 << 30
     AVS_CS_PLANAR = 1 << 31
 
-    AVS_CS_SHIFT_SUB_WIDTH   = 0
-    AVS_CS_SHIFT_SUB_HEIGHT  = 1 << 3
-    AVS_CS_SHIFT_SAMPLE_BITS = 1 << 4
+    AVS_CS_SHIFT_SUB_WIDTH = 0
+    AVS_CS_SHIFT_SUB_HEIGHT = 8
+    AVS_CS_SHIFT_SAMPLE_BITS = 16
 
-    AVS_CS_SUB_WIDTH_MASK    = 7 << AVS_CS_SHIFT_SUB_WIDTH
-    AVS_CS_SUB_WIDTH_1       = 3 << AVS_CS_SHIFT_SUB_WIDTH # YV24
-    AVS_CS_SUB_WIDTH_2       = 0 << AVS_CS_SHIFT_SUB_WIDTH # YV12, I420, YV16
-    AVS_CS_SUB_WIDTH_4       = 1 << AVS_CS_SHIFT_SUB_WIDTH # YUV9, YV411
+    AVS_CS_SUB_WIDTH_MASK = 7 << AVS_CS_SHIFT_SUB_WIDTH
+    AVS_CS_SUB_WIDTH_1 = 3 << AVS_CS_SHIFT_SUB_WIDTH # YV24
+    AVS_CS_SUB_WIDTH_2 = 0 << AVS_CS_SHIFT_SUB_WIDTH # YV12, I420, YV16
+    AVS_CS_SUB_WIDTH_4 = 1 << AVS_CS_SHIFT_SUB_WIDTH # YUV9, YV411
 
-    AVS_CS_VPLANEFIRST       = 1 << 3 # YV12, YV16, YV24, YV411, YUV9
-    AVS_CS_UPLANEFIRST       = 1 << 4 # I420
+    AVS_CS_VPLANEFIRST = 1 << 3 # YV12, YV16, YV24, YV411, YUV9
+    AVS_CS_UPLANEFIRST = 1 << 4 # I420
 
-    AVS_CS_SUB_HEIGHT_MASK   = 7 << AVS_CS_SHIFT_SUB_HEIGHT
-    AVS_CS_SUB_HEIGHT_1      = 3 << AVS_CS_SHIFT_SUB_HEIGHT # YV16, YV24, YV411
-    AVS_CS_SUB_HEIGHT_2      = 0 << AVS_CS_SHIFT_SUB_HEIGHT # YV12, I420
-    AVS_CS_SUB_HEIGHT_4      = 1 << AVS_CS_SHIFT_SUB_HEIGHT # YUV9
+    AVS_CS_SUB_HEIGHT_MASK = 7 << AVS_CS_SHIFT_SUB_HEIGHT
+    AVS_CS_SUB_HEIGHT_1 = 3 << AVS_CS_SHIFT_SUB_HEIGHT # YV16, YV24, YV411
+    AVS_CS_SUB_HEIGHT_2 = 0 << AVS_CS_SHIFT_SUB_HEIGHT # YV12, I420
+    AVS_CS_SUB_HEIGHT_4 = 1 << AVS_CS_SHIFT_SUB_HEIGHT # YUV9
 
-    AVS_CS_SAMPLE_BITS_MASK  = 7 << AVS_CS_SHIFT_SAMPLE_BITS
-    AVS_CS_SAMPLE_BITS_8     = 0 << AVS_CS_SHIFT_SAMPLE_BITS
-    AVS_CS_SAMPLE_BITS_16    = 1 << AVS_CS_SHIFT_SAMPLE_BITS
-    AVS_CS_SAMPLE_BITS_32    = 2 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_MASK = 7 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_8 = 0 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_10 = 5 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_12 = 6 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_14 = 7 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_16 = 1 << AVS_CS_SHIFT_SAMPLE_BITS
+    AVS_CS_SAMPLE_BITS_32 = 2 << AVS_CS_SHIFT_SAMPLE_BITS
 
-    AVS_CS_PLANAR_MASK       = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV | \
-                               AVS_CS_BGR | AVS_CS_SAMPLE_BITS_MASK | \
-                               AVS_CS_SUB_HEIGHT_MASK | AVS_CS_SUB_WIDTH_MASK
-    AVS_CS_PLANAR_FILTER     = ~ (AVS_CS_VPLANEFIRST | AVS_CS_UPLANEFIRST)
+    AVS_CS_PLANAR_MASK = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV | \
+                         AVS_CS_BGR | AVS_CS_YUVA | AVS_CS_SAMPLE_BITS_MASK | \
+                         AVS_CS_SUB_HEIGHT_MASK | AVS_CS_SUB_WIDTH_MASK
+    AVS_CS_PLANAR_FILTER = ~(AVS_CS_VPLANEFIRST | AVS_CS_UPLANEFIRST)
+
+    AVS_CS_RGB_TYPE  = 1 << 0
+    AVS_CS_RGBA_TYPE = 1 << 1
+
+    AVS_CS_GENERIC_YUV420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2 # 4:2:0 planar
+    AVS_CS_GENERIC_YUV422  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_2 # 4:2:2 planar
+    AVS_CS_GENERIC_YUV444  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_1 #  4:4:4 planar
+    AVS_CS_GENERIC_Y       = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV                                             # Y only (4:0:0)
+    AVS_CS_GENERIC_RGBP    = AVS_CS_PLANAR | AVS_CS_BGR | AVS_CS_RGB_TYPE                                                # planar RGB
+    AVS_CS_GENERIC_RGBAP   = AVS_CS_PLANAR | AVS_CS_BGR | AVS_CS_RGBA_TYPE                                               # planar RGBA
+    AVS_CS_GENERIC_YUVA420 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2 # 4:2:0:A planar
+    AVS_CS_GENERIC_YUVA422 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_2 # 4:2:2:A planar
+    AVS_CS_GENERIC_YUVA444 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_1 # 4:4:4:A planar
+    #--------------------------------
 
     # Specific colorformats
-    AVS_CS_UNKNOWN = 0,
-    AVS_CS_BGR24 = 1 << 0 | AVS_CS_BGR | AVS_CS_INTERLEAVED
-    AVS_CS_BGR32 = 1 << 1 | AVS_CS_BGR | AVS_CS_INTERLEAVED
-    AVS_CS_YUY2 = 1 << 2 | AVS_CS_YUV | AVS_CS_INTERLEAVED
-    AVS_CS_YV12 = 1 << 3 | AVS_CS_YUV | AVS_CS_PLANAR  # y-v-u, planar
-    AVS_CS_I420 = 1 << 4 | AVS_CS_YUV | AVS_CS_PLANAR  # y-u-v, planar
-    AVS_CS_IYUV = 1 << 4 | AVS_CS_YUV | AVS_CS_PLANAR
-    AVS_CS_RAW32 = 1 << 5 | AVS_CS_INTERLEAVED
+    AVS_CS_UNKNOWN = 0
+    AVS_CS_BGR24 = AVS_CS_RGB_TYPE  | AVS_CS_BGR | AVS_CS_INTERLEAVED
+    AVS_CS_BGR32 = AVS_CS_RGBA_TYPE | AVS_CS_BGR | AVS_CS_INTERLEAVED
+    AVS_CS_YUY2 = 1<<2 | AVS_CS_YUV | AVS_CS_INTERLEAVED
+    #  AVS_CS_YV12  = 1<<3  Reserved
+    #  AVS_CS_I420  = 1<<4  Reserved
+    AVS_CS_RAW32 = 1<<5 | AVS_CS_INTERLEAVED
 
-    AVS_CS_YV24  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | \
-                   AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_1  # YVU 4:4:4 planar
-    AVS_CS_YV16  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | \
-                   AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_2  # YVU 4:2:2 planar
-    AVS_CS_YV12  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | \
-                   AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2  # YVU 4:2:0 planar
-    AVS_CS_I420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | \
-                   AVS_CS_UPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2  # YUV 4:2:0 planar
+    AVS_CS_YV24  = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_8 # YVU 4:4:4 planar
+    AVS_CS_YV16  = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_8 # YVU 4:2:2 planar
+    AVS_CS_YV12  = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_8 # YVU 4:2:0 planar
+    AVS_CS_I420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_UPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2 # YUV 4:2:0 planar
     AVS_CS_IYUV  = AVS_CS_I420
-    AVS_CS_YV411 = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | \
-                   AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_4  # YVU 4:1:1 planar
-    AVS_CS_YUV9  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | \
-                   AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_4 | AVS_CS_SUB_WIDTH_4  # YVU 4:1:0 planar
-    AVS_CS_Y8    = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8  # Y 4:0:0 planar
+    AVS_CS_YV411 = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_4 # YVU 4:1:1 planar
+    AVS_CS_YUV9  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_4 | AVS_CS_SUB_WIDTH_4 # YVU 4:1:0 planar
+    AVS_CS_Y8    = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_8 # Y 4:0:0 planar
+
+    # 10-12-14-16 bit + planar RGB + BRG48/64
+    AVS_CS_YUV444P10 = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_10 # YUV 4:4:4 10bit samples
+    AVS_CS_YUV422P10 = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_10 # YUV 4:2:2 10bit samples
+    AVS_CS_YUV420P10 = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_10 # YUV 4:2:0 10bit samples
+    AVS_CS_Y10       = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_10 # Y 4:0:0 10bit samples
+
+    AVS_CS_YUV444P12 = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_12 # YUV 4:4:4 12bit samples
+    AVS_CS_YUV422P12 = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_12 # YUV 4:2:2 12bit samples
+    AVS_CS_YUV420P12 = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_12 # YUV 4:2:0 12bit samples
+    AVS_CS_Y12       = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_12 # Y 4:0:0 12bit samples
+
+    AVS_CS_YUV444P14 = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_14 # YUV 4:4:4 14bit samples
+    AVS_CS_YUV422P14 = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_14 # YUV 4:2:2 14bit samples
+    AVS_CS_YUV420P14 = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_14 # YUV 4:2:0 14bit samples
+    AVS_CS_Y14       = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_14 # Y 4:0:0 14bit samples
+
+    AVS_CS_YUV444P16 = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_16 # YUV 4:4:4 16bit samples
+    AVS_CS_YUV422P16 = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_16 # YUV 4:2:2 16bit samples
+    AVS_CS_YUV420P16 = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_16 # YUV 4:2:0 16bit samples
+    AVS_CS_Y16       = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_16 # Y 4:0:0 16bit samples
+
+    # 32 bit samples (float)
+    AVS_CS_YUV444PS = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_32 # YUV 4:4:4 32bit samples
+    AVS_CS_YUV422PS = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_32 # YUV 4:2:2 32bit samples
+    AVS_CS_YUV420PS = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_32 # YUV 4:2:0 32bit samples
+    AVS_CS_Y32      = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_32 # Y 4:0:0 32bit samples
+
+    # RGB packed
+    AVS_CS_BGR48 = AVS_CS_RGB_TYPE | AVS_CS_BGR | AVS_CS_INTERLEAVED | AVS_CS_SAMPLE_BITS_16 # BGR 3x16 bit
+    AVS_CS_BGR64 = AVS_CS_RGBA_TYPE | AVS_CS_BGR | AVS_CS_INTERLEAVED | AVS_CS_SAMPLE_BITS_16 # BGR 4x16 bit
+    # no packed 32 bit (float) support for these legacy types
+
+    # RGB planar
+    AVS_CS_RGBP   = AVS_CS_GENERIC_RGBP | AVS_CS_SAMPLE_BITS_8  # Planar RGB 8 bit samples
+    AVS_CS_RGBP10 = AVS_CS_GENERIC_RGBP | AVS_CS_SAMPLE_BITS_10 # Planar RGB 10bit samples
+    AVS_CS_RGBP12 = AVS_CS_GENERIC_RGBP | AVS_CS_SAMPLE_BITS_12 # Planar RGB 12bit samples
+    AVS_CS_RGBP14 = AVS_CS_GENERIC_RGBP | AVS_CS_SAMPLE_BITS_14 # Planar RGB 14bit samples
+    AVS_CS_RGBP16 = AVS_CS_GENERIC_RGBP | AVS_CS_SAMPLE_BITS_16 # Planar RGB 16bit samples
+    AVS_CS_RGBPS  = AVS_CS_GENERIC_RGBP | AVS_CS_SAMPLE_BITS_32 # Planar RGB 32bit samples
+
+    # RGBA planar
+    AVS_CS_RGBAP   = AVS_CS_GENERIC_RGBAP | AVS_CS_SAMPLE_BITS_8  # Planar RGBA 8 bit samples
+    AVS_CS_RGBAP10 = AVS_CS_GENERIC_RGBAP | AVS_CS_SAMPLE_BITS_10 # Planar RGBA 10bit samples
+    AVS_CS_RGBAP12 = AVS_CS_GENERIC_RGBAP | AVS_CS_SAMPLE_BITS_12 # Planar RGBA 12bit samples
+    AVS_CS_RGBAP14 = AVS_CS_GENERIC_RGBAP | AVS_CS_SAMPLE_BITS_14 # Planar RGBA 14bit samples
+    AVS_CS_RGBAP16 = AVS_CS_GENERIC_RGBAP | AVS_CS_SAMPLE_BITS_16 # Planar RGBA 16bit samples
+    AVS_CS_RGBAPS  = AVS_CS_GENERIC_RGBAP | AVS_CS_SAMPLE_BITS_32 # Planar RGBA 32bit samples
+
+    # Planar YUVA
+    AVS_CS_YUVA444    = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_8 # YUVA 4:4:4 8bit samples
+    AVS_CS_YUVA422    = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_8 # YUVA 4:2:2 8bit samples
+    AVS_CS_YUVA420    = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_8 # YUVA 4:2:0 8bit samples
+
+    AVS_CS_YUVA444P10 = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_10 # YUVA 4:4:4 10bit samples
+    AVS_CS_YUVA422P10 = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_10 # YUVA 4:2:2 10bit samples
+    AVS_CS_YUVA420P10 = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_10 # YUVA 4:2:0 10bit samples
+
+    AVS_CS_YUVA444P12 = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_12 # YUVA 4:4:4 12bit samples
+    AVS_CS_YUVA422P12 = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_12 # YUVA 4:2:2 12bit samples
+    AVS_CS_YUVA420P12 = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_12 # YUVA 4:2:0 12bit samples
+
+    AVS_CS_YUVA444P14 = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_14 # YUVA 4:4:4 14bit samples
+    AVS_CS_YUVA422P14 = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_14 # YUVA 4:2:2 14bit samples
+    AVS_CS_YUVA420P14 = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_14 # YUVA 4:2:0 14bit samples
+
+    AVS_CS_YUVA444P16 = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_16 # YUVA 4:4:4 16bit samples
+    AVS_CS_YUVA422P16 = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_16 # YUVA 4:2:2 16bit samples
+    AVS_CS_YUVA420P16 = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_16 # YUVA 4:2:0 16bit samples
+
+    AVS_CS_YUVA444PS  = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_32 # YUVA 4:4:4 32bit samples
+    AVS_CS_YUVA422PS  = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_32 # YUVA 4:2:2 32bit samples
+    AVS_CS_YUVA420PS  = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_32 # YUVA 4:2:0 32bit samples
+#end of colorspaces
 
     AVS_IT_BFF = 1 << 0
     AVS_IT_TFF = 1 << 1
@@ -180,32 +275,60 @@ class avs(): # lowercase for compatibility with the cffi bindings
     AVS_FILTER_OUTPUT_TYPE_SAME = 3
     AVS_FILTER_OUTPUT_TYPE_DIFFERENT = 4
 
-    AVS_CACHE_NOTHING = 0
-    AVS_CACHE_RANGE = 1
-    AVS_CACHE_ALL = 2
-    AVS_CACHE_AUDIO = 3
-    AVS_CACHE_AUDIO_NONE = 4
-    AVS_CACHE_AUDIO_AUTO = 5
+    # New 2.6 explicitly defined cache hints.
+    AVS_CACHE_NOTHING=10 # Do not cache video.
+    AVS_CACHE_WINDOW=11 # Hard protect upto X frames within a range of X from the current frame N.
+    AVS_CACHE_GENERIC=12 # LRU cache upto X frames.
+    AVS_CACHE_FORCE_GENERIC=13 # LRU cache upto X frames, override any previous CACHE_WINDOW.
 
-    # CPU flags            slowest CPU to support extension
-    AVS_CPU_FORCE       = 0x01   # N/A
-    AVS_CPU_FPU         = 0x02   # 386/486DX
-    AVS_CPU_MMX         = 0x04   # P55C, K6, PII
-    AVS_CPU_INTEGER_SSE = 0x08   # PIII, Athlon
-    AVS_CPU_SSE         = 0x10   # PIII, Athlon XP/MP
-    AVS_CPU_SSE2        = 0x20   # PIV, Hammer
-    AVS_CPU_3DNOW       = 0x40   # K6-2
-    AVS_CPU_3DNOW_EXT   = 0x80   # Athlon
-    AVS_CPU_X86_64      = 0xA0   # Hammer (note: equiv. to 3DNow + SSE2, 
-                                 # which only Hammer will have anyway)
-    AVS_CPUF_SSE3       = 0x100  #  PIV+, K8 Venice
-    AVS_CPUF_SSSE3      = 0x200  #  Core 2
-    AVS_CPUF_SSE4       = 0x400  #  Penryn, Wolfdale, Yorkfield
-    AVS_CPUF_SSE4_1     = 0x400
-    AVS_CPUF_SSE4_2     = 0x800  #  Nehalem
+    AVS_CACHE_GET_POLICY=30 # Get the current policy.
+    AVS_CACHE_GET_WINDOW=31 # Get the current window h_span.
+    AVS_CACHE_GET_RANGE=32 # Get the current generic frame range.
 
-    AVS_FRAME_ALIGN = 16
+    AVS_CACHE_AUDIO=50 # Explicitly do cache audio, X byte cache.
+    AVS_CACHE_AUDIO_NOTHING=51 # Explicitly do not cache audio.
+    AVS_CACHE_AUDIO_NONE=52 # Audio cache off (auto mode), X byte intial cache.
+    AVS_CACHE_AUDIO_AUTO=53 # Audio cache on (auto mode), X byte intial cache.
 
+    AVS_CACHE_GET_AUDIO_POLICY=70 # Get the current audio policy.
+    AVS_CACHE_GET_AUDIO_SIZE=71 # Get the current audio cache size.
+
+    AVS_CACHE_PREFETCH_FRAME=100 # Queue request to prefetch frame N.
+    AVS_CACHE_PREFETCH_GO=101 # Action video prefetches.
+
+    AVS_CACHE_PREFETCH_AUDIO_BEGIN=120 # Begin queue request transaction to prefetch audio (take critical section).
+    AVS_CACHE_PREFETCH_AUDIO_STARTLO=121 # Set low 32 bits of start.
+    AVS_CACHE_PREFETCH_AUDIO_STARTHI=122 # Set high 32 bits of start.
+    AVS_CACHE_PREFETCH_AUDIO_COUNT=123 # Set low 32 bits of length.
+    AVS_CACHE_PREFETCH_AUDIO_COMMIT=124 # Enqueue request transaction to prefetch audio (release critical section).
+    AVS_CACHE_PREFETCH_AUDIO_GO=125 # Action audio prefetches.
+
+    AVS_CACHE_GETCHILD_CACHE_MODE=200 # Cache ask Child for desired video cache mode.
+    AVS_CACHE_GETCHILD_CACHE_SIZE=201 # Cache ask Child for desired video cache size.
+    AVS_CACHE_GETCHILD_AUDIO_MODE=202 # Cache ask Child for desired audio cache mode.
+    AVS_CACHE_GETCHILD_AUDIO_SIZE=203 # Cache ask Child for desired audio cache size.
+
+    AVS_CACHE_GETCHILD_COST=220 # Cache ask Child for estimated processing cost.
+    AVS_CACHE_COST_ZERO=221 # Child response of zero cost (ptr arithmetic only).
+    AVS_CACHE_COST_UNIT=222 # Child response of unit cost (less than or equal 1 full frame blit).
+    AVS_CACHE_COST_LOW=223 # Child response of light cost. (Fast)
+    AVS_CACHE_COST_MED=224 # Child response of medium cost. (Real time)
+    AVS_CACHE_COST_HI=225 # Child response of heavy cost. (Slow)
+
+    AVS_CACHE_GETCHILD_THREAD_MODE=240 # Cache ask Child for thread safetyness.
+    AVS_CACHE_THREAD_UNSAFE=241 # Only 1 thread allowed for all instances. 2.5 filters default!
+    AVS_CACHE_THREAD_CLASS=242 # Only 1 thread allowed for each instance. 2.6 filters default!
+    AVS_CACHE_THREAD_SAFE=243 # Allow all threads in any instance.
+    AVS_CACHE_THREAD_OWN=244 # Safe but limit to 1 thread, internally threaded.
+
+    AVS_CACHE_GETCHILD_ACCESS_COST=260 # Cache ask Child for preferred access pattern.
+    AVS_CACHE_ACCESS_RAND=261 # Filter is access order agnostic.
+    AVS_CACHE_ACCESS_SEQ0=262 # Filter prefers sequential access (low cost)
+    AVS_CACHE_ACCESS_SEQ1=263 # Filter needs sequential access (high cost)
+
+    AVS_FRAME_ALIGN = 64
+
+    #CPU flags: no need
   
 #ctypes helper
 def by_ref_at(obj, offset):
@@ -221,7 +344,7 @@ class AvisynthError(Exception):
 
 class AVS_ScriptEnvironment(object):
     
-    def __init__(self, version=3):
+    def __init__(self, version=6):
         self.cdata = avs_create_script_environment(version)
         weak_dict[self] = []
     
