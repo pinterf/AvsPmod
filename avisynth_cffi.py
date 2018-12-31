@@ -391,7 +391,7 @@ int avs_is_bff(const AVS_VideoInfo * p);
 int avs_is_tff(const AVS_VideoInfo * p);
 // became a real interface function int avs_bits_per_pixel(const AVS_VideoInfo * p);
 // became a real interface function int avs_bytes_from_pixels(const AVS_VideoInfo * p, int pixels); // Will work on planar images, but will return only luma planes
-// became a real interface function int avs_row_size(const AVS_VideoInfo * p);  // Also only returns first plane on planar images
+// became a real interface function int avs_row_size(const AVS_VideoInfo * p);  // Also only returns first plane on planar images Fixed in V6: plane parameter
 // became a real interface function int avs_bmp_size(const AVS_VideoInfo * vi);
 int avs_samples_per_second(const AVS_VideoInfo * p);
 int avs_bytes_per_channel_sample(const AVS_VideoInfo * p);
@@ -1206,19 +1206,19 @@ class AVS_VideoInfo(object):
     def is_yuy2(self):
         return bool(avs.avs_is_yuy2(self.cdata))
     
-    def is_yv24(self):
+    def is_yv24(self): #V6
         return bool(avs.avs_is_yv24(self.cdata))
     
-    def is_yv16(self):
+    def is_yv16(self): #V6
         return bool(avs.avs_is_yv16(self.cdata))
     
-    def is_yv12(self):
+    def is_yv12(self): #V6
         return bool(avs.avs_is_yv12(self.cdata))
     
-    def is_yv411(self):
+    def is_yv411(self): #V6
         return bool(avs.avs_is_yv411(self.cdata))
     
-    def is_y8(self):
+    def is_y8(self): #V6
         return bool(avs.avs_is_y8(self.cdata))
     
     def is_property(self, property):
@@ -1227,7 +1227,7 @@ class AVS_VideoInfo(object):
     def is_planar(self):
         return bool(avs.avs_is_planar(self.cdata))
     
-    def is_color_space(self, color_space):
+    def is_color_space(self, color_space): #V6
         return bool(avs.avs_is_color_space(self.cdata, color_space))
     
     def is_field_based(self):
@@ -1255,18 +1255,18 @@ class AVS_VideoInfo(object):
         return avs.avs_get_plane_height_subsampling(self.cdata, plane);
         # IF V6: became and interface fn
     
-    def bits_per_pixel(self):
+    def bits_per_pixel(self): #V6
         return avs.avs_bits_per_pixel(self.cdata)
     
-    def bytes_from_pixels(self, pixels):
+    def bytes_from_pixels(self, pixels): #V6
         # Will work on planar images, but will return only luma planes
         return avs.avs_bytes_from_pixels(self.cdata, pixels)
     
-    def row_size(self):
+    def row_size(self): #V6
         # Also only returns first plane on planar images
         return avs.avs_row_size(self.cdata)
     
-    def bmp_size(self):
+    def bmp_size(self): #V6
         return avs.avs_bmp_size(self.cdata)
     
     def samples_per_second(self):
@@ -1316,6 +1316,7 @@ class AVS_VideoInfo(object):
     def is_same_colorspace(self, vi):
         return bool(avs.avs_is_same_colorspace(self.cdata, vi))
 '''
+#todo avs+: avs_is_y, is_444, etc.
 
 class AVS_VideoFrame(object):
     
@@ -1350,10 +1351,12 @@ class AVS_VideoFrame(object):
     
     # not nice. Accessing the internal fields directly despite the big warning:
     # // DO NOT USE THIS STRUCTURE DIRECTLY
+    # todo remove this hardcoded part when get_read_ptr and get_write_ptr will be real interface function
     def get_offset(self, plane=avs.AVS_PLANAR_Y): # interface.cpp
-        if plane == avs.AVS_PLANAR_U: return self.cdata.offsetU
-        elif plane == avs.AVS_PLANAR_V: return self.cdata.offsetV
-        return self.cdata.offset
+        if plane == avs.AVS_PLANAR_U or plane == avs.AVS_PLANAR_B: return self.cdata.offsetU
+        elif plane == avs.AVS_PLANAR_V or plane == avs.AVS_PLANAR_R: return self.cdata.offsetV
+        elif plane == avs.AVS_PLANAR_A: return self.cdata.contents.offsetA
+        return self.cdata.offset # AVS_PLANAR_Y or AVS_PLANAR_G
     
     def get_read_ptr(self, plane=avs.AVS_PLANAR_Y):
         return avs.avs_get_read_ptr_p(self.cdata, plane)
@@ -1667,7 +1670,7 @@ class AVS_Clip(object):
 
 class AVS_ScriptEnvironment(object):
     
-    def __init__(self, version=3):
+    def __init__(self, version=6):
         self.cdata = avs.avs_create_script_environment(version)
     
     def __del__(self):
