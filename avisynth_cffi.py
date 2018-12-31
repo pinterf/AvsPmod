@@ -1248,11 +1248,11 @@ class AVS_VideoInfo(object):
             == avs.AVS_CS_VPLANEFIRST # Shouldn't use this
     
     def get_plane_width_subsampling(self, plane): # interface.cpp
-        return avs.avs_get_planewidth_subsampling(self.cdata, plane);
+        return avs.avs_get_plane_width_subsampling(self.cdata, plane);
         # IF V6: became and interface fn
     
     def get_plane_height_subsampling(self, plane): # interface.cpp
-        return avs.avs_get_planeheight_subsampling(self.cdata, plane);
+        return avs.avs_get_plane_height_subsampling(self.cdata, plane);
         # IF V6: became and interface fn
     
     def bits_per_pixel(self):
