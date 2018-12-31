@@ -489,10 +489,12 @@ class AVS_VideoInfo(object):
         return self.cdata.contents.pixel_type & avs.AVS_CS_BGR != 0
     
     def is_rgb24(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_BGR24) == avs.AVS_CS_BGR24
+        return ((self.cdata.contents.pixel_type & avs.AVS_CS_BGR24) == avs.AVS_CS_BGR24) and \
+            ((self.cdata.contents.pixel_type & avs.AVS_CS_SAMPLE_BITS_MASK) == avs.AVS_CS_SAMPLE_BITS_8)
     
     def is_rgb32(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_BGR32) == avs.AVS_CS_BGR32
+        return ((self.cdata.contents.pixel_type & avs.AVS_CS_BGR32) == avs.AVS_CS_BGR32) and \
+            ((self.cdata.contents.pixel_type & avs.AVS_CS_SAMPLE_BITS_MASK) == avs.AVS_CS_SAMPLE_BITS_8)
     
     def is_yuv(self):
         return self.cdata.contents.pixel_type & avs.AVS_CS_YUV != 0
@@ -501,19 +503,24 @@ class AVS_VideoInfo(object):
         return (self.cdata.contents.pixel_type & avs.AVS_CS_YUY2) == avs.AVS_CS_YUY2
     
     def is_yv24(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV24 & avs.AVS_CS_PLANAR_FILTER)
+        return bool(avs_is_yv24(self.cdata)) #V6
+        #return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV24 & avs.AVS_CS_PLANAR_FILTER)
     
     def is_yv16(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV16 & avs.AVS_CS_PLANAR_FILTER)
+        return bool(avs_is_yv16(self.cdata)) #V6
+        #return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV16 & avs.AVS_CS_PLANAR_FILTER)
     
     def is_yv12(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV12 & avs.AVS_CS_PLANAR_FILTER)
+        return bool(avs_is_yv12(self.cdata)) #V6
+        #return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV12 & avs.AVS_CS_PLANAR_FILTER)
     
     def is_yv411(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV411 & avs.AVS_CS_PLANAR_FILTER)
+        return bool(avs_is_yv411(self.cdata)) #V6
+        #return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_YV411 & avs.AVS_CS_PLANAR_FILTER)
     
     def is_y8(self):
-        return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_Y8 & avs.AVS_CS_PLANAR_FILTER)
+        return bool(avs_is_y8(self.cdata)) #V6
+        #return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (avs.AVS_CS_Y8 & avs.AVS_CS_PLANAR_FILTER)
     
     def is_property(self, property):
         return (self.cdata.contents.pixel_type & property) == property
@@ -525,10 +532,11 @@ class AVS_VideoInfo(object):
         return self.cdata.contents.pixel_type & avs.AVS_CS_INTERLEAVED != 0
     
     def is_color_space(self, c_space):
-        if self.cdata.is_planar():
-            return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (c_space & avs.AVS_CS_PLANAR_FILTER)
-        else:
-            return (self.cdata.contents.pixel_type & c_space) == c_space
+        return bool(avs_is_color_space(self.cdata, c_space)); #V6
+        #if self.cdata.is_planar():
+        #    return (self.cdata.contents.pixel_type & avs.AVS_CS_PLANAR_MASK) == (c_space & avs.AVS_CS_PLANAR_FILTER)
+        #else:
+        #    return (self.cdata.contents.pixel_type & c_space) == c_space
     
     def is_field_based(self):
         return self.cdata.contents.image_type & avs.AVS_IT_FIELDBASED != 0
@@ -544,79 +552,28 @@ class AVS_VideoInfo(object):
         return self.cdata.contents.image_type & avs.AVS_IT_TFF != 0
     
     def is_v_plane_first(self):
+        # todo: move to avs_is_y when it's safe for classic avisynth
         return not self.is_y8() and self.is_planar() and (self.cdata.contents.pixel_type & 
             (avs.AVS_CS_VPLANEFIRST | avs.AVS_CS_UPLANEFIRST)) == avs.AVS_CS_VPLANEFIRST # Shouldn't use this
     
     def get_plane_width_subsampling(self, plane): # Subsampling in bitshifts!
-        if plane == avs.AVS_PLANAR_Y:  # No subsampling
-            return 0
-        if self.is_y8():
-            raise AvisynthError("Filter error: get_plane_width_subsampling not "
-                                "available on Y8 pixel type.")
-        if (plane == avs.AVS_PLANAR_U or plane == avs.AVS_PLANAR_V):
-            if self.is_yuy2():
-                return 1
-            elif self.is_planar():
-                return ((self.cdata.contents.pixel_type >> avs.AVS_CS_SHIFT_SUB_WIDTH) + 1) & 3
-            else:
-                raise AvisynthError("Filter error: get_plane_width_subsampling "
-                                    "called with unsupported pixel type.")
-        raise AvisynthError("Filter error: get_plane_width_subsampling called "
-                            "with unsupported plane.")
-    
+        return avs_get_plane_width_subsampling(self.cdata, plane); #V6
+
     def get_plane_height_subsampling(self, plane): # Subsampling in bitshifts!
-        if plane == avs.AVS_PLANAR_Y:  # No subsampling
-            return 0
-        if self.is_y8():
-            raise AvisynthError("Filter error: get_plane_height_subsampling "
-                                "not available on Y8 pixel type.")
-        if (plane == avs.AVS_PLANAR_U or plane == avs.AVS_PLANAR_V):
-            if self.is_yuy2():
-                return 0
-            elif self.is_planar():
-                return ((self.cdata.contents.pixel_type >> avs.AVS_CS_SHIFT_SUB_HEIGHT) + 1) & 3
-            else:
-                raise AvisynthError("Filter error: get_plane_height_subsampling "
-                                    "called with unsupported pixel type.")
-        raise AvisynthError("Filter error: get_plane_height_subsampling called "
-                            "with unsupported plane.")
-    
+        return avs_get_plane_height_subsampling(self.cdata, plane) #V6
+
     def bits_per_pixel(self): # Lookup Interleaved, calculate PLANAR's
-        for csp in ((avs.AVS_CS_BGR24, 24), (avs.AVS_CS_BGR32, 32), 
-                    (avs.AVS_CS_YUY2, 16), (avs.AVS_CS_Y8, 8)):
-            if self.cdata.contents.pixel_type == csp[0]: return csp[1]
-        if self.is_planar():
-            S = self.get_plane_width_subsampling(avs.AVS_PLANAR_U) + \
-                self.get_plane_height_subsampling(avs.AVS_PLANAR_U) if self.is_yuv() else 0
-            return ( ((1 << S) + 2) * (8 << ((self.pixel_type >> avs.AVS_CS_SHIFT_SAMPLE_BITS) & 3)) ) >> S
-        return 0
-    
+        return avs_bits_per_pixel(self.cdata); #V6
+
     def bytes_from_pixels(self, pixels):
-        if not self.is_y8() and self.is_planar(): # For planar images, will return luma plane
-            return pixels << ((self.cdata.contents.pixel_type >> avs.AVS_CS_SHIFT_SAMPLE_BITS) & 3)
-        else:
-            return pixels * (self.bits_per_pixel() >> 3)
-    
+        return avs_bits_per_pixel(self.cdata); #V6
+
     def row_size(self, plane):
-        rowsize = self.bytes_from_pixels(self.cdata.contents.width)
-        if plane in (avs.AVS_PLANAR_U, avs.AVS_PLANAR_V):
-            return (rowsize >> self.get_plane_width_subsampling(plane)) \
-                   if not self.is_y8() and self.is_planar() else 0
-        elif plane in (avs.AVS_PLANAR_U_ALIGNED, avs.AVS_PLANAR_V_ALIGNED): # Aligned rowsize
-            return ((rowsize >> self.get_plane_width_subsampling(plane)) + avs.AVS_FRAME_ALIGN-1) & \
-                   (~(avs.AVS_FRAME_ALIGN-1)) if not self.is_y8() and self.is_planar() else 0
-        elif plane == avs.AVS_PLANAR_Y_ALIGNED: # Aligned rowsize
-            return (rowsize + avs.AVS_FRAME_ALIGN-1) & (~(avs.AVS_FRAME_ALIGN-1))
-        return rowsize
+        return avs_row_size(self.cdata, plane); #V6
 
     def bmp_size(self):
-        if not self.isy8() and self.is_planar(): # Y plane
-            Ybytes  = ((self.RowSize(avs.AVS_PLANAR_Y) + 3) & ~3) * self.height
-            UVbytes = ((self.RowSize(avs.AVS_PLANAR_U) + 3) & ~3) * self.height >> \
-                      self.get_plane_height_subsampling(PLANAR_U)
-            return Ybytes + UVbytes * 2
-        return self.cdata.contents.height * ((self.row_size() + 3) & ~3)
-    
+        return avs_bmp_size(self.cdata); #V6
+
     def samples_per_second(self):
         return self.cdata.contents.audio_samples_per_second
     
@@ -767,8 +724,11 @@ class AVS_VideoFrame_C(ctypes.Structure):
                 ("offsetU",ctypes.c_int),
                 ("offsetV",ctypes.c_int),
                 ("pitchUV",ctypes.c_int),
-                #("row_sizeUV",ctypes.c_int), # 5
-                #("heightUV",ctypes.c_int),
+                ("row_sizeUV",ctypes.c_int),
+                ("heightUV",ctypes.c_int),
+                ("offsetA",ctypes.c_int), # 4th alpha plane support, pitch and row_size is 0 is none
+                ("pitchA",ctypes.c_int),
+                ("row_sizeA",ctypes.c_int)
                ]
 
 class AVS_VideoFrame(object):
@@ -794,57 +754,43 @@ class AVS_VideoFrame(object):
         return string
     
     def get_pitch(self, plane=avs.AVS_PLANAR_Y):
-        if plane in (avs.AVS_PLANAR_U, avs.AVS_PLANAR_V):
-            return self.cdata.contents.pitchUV
-        return self.cdata.contents.pitch
-    
+        return avs_get_pitch_p(self.cdata, plane); #V6
+
     def get_row_size(self, plane=avs.AVS_PLANAR_Y):
-        if plane in (avs.AVS_PLANAR_U, avs.AVS_PLANAR_V):
-            #return self.cdata.contents.row_sizeUV if self.cdata.contents.pitchUV != 0 else 0 # 5
-            return self.cdata.contents.row_size / 2 if self.cdata.contents.pitchUV != 0 else 0
-        elif plane in (avs.AVS_PLANAR_U_ALIGNED, avs.AVS_PLANAR_V_ALIGNED):
-            if self.cdata.contents.pitchUV != 0:
-                #r = (self.cdata.contents.row_sizeUV + FRAME_ALIGN-1) & (~(FRAME_ALIGN-1)) # Aligned rowsize
-                r = (self.cdata.contents.row_size / 2 + avs.AVS_FRAME_ALIGN-1) & (~(avs.AVS_FRAME_ALIGN-1)) # Aligned rowsize
-                if r <= self.cdata.contents.pitchUV:
-                    return r
-                #return self.cdata.contents.row_sizeUV
-                return self.cdata.contents.row_size / 2
-            else: return 0
-        elif plane in (avs.AVS_PLANAR_ALIGNED, avs.AVS_PLANAR_Y_ALIGNED):
-            r = (self.cdata.contents.row_size + avs.AVS_FRAME_ALIGN-1) & (~(avs.AVS_FRAME_ALIGN-1)) # Aligned rowsize
-            if r <= self.cdata.contents.pitch:
-                return r
-            return self.cdata.contents.row_size
-        return self.cdata.contents.row_size
-    
+        return avs_get_row_size_p(self.cdata, plane); #V6
+
     def get_height(self, plane=avs.AVS_PLANAR_Y):
-        if plane in (avs.AVS_PLANAR_U, avs.AVS_PLANAR_V):
-            #return self.cdata.contents.heightUV if self.cdata.contents.pitchUV != 0 else 0 # 5
-            return self.cdata.contents.height / 2 if self.cdata.contents.pitchUV != 0 else 0
-        return self.cdata.contents.height
-    
+        return avs_get_height_p(self.cdata, plane); #V6
+
     def get_frame_buffer(self): return self.cdata.contents.vfb
     
+    # not nice. Accessing the internal fields directly despite the big warning:
+    # // DO NOT USE THIS STRUCTURE DIRECTLY
+    # todo remove this hardcoded part when get_read_ptr and get_write_ptr will be real interface function
     def get_offset(self, plane=avs.AVS_PLANAR_Y):
-        if plane == avs.AVS_PLANAR_U: return self.cdata.contents.offsetU
-        elif plane == avs.AVS_PLANAR_V: return self.cdata.contents.offsetV
-        return self.cdata.contents.offset
+        if plane == avs.AVS_PLANAR_U or plane == avs.AVS_PLANAR_B: return self.cdata.contents.offsetU
+        elif plane == avs.AVS_PLANAR_V or plane == avs.AVS_PLANAR_R: return self.cdata.contents.offsetV
+        elif plane == avs.AVS_PLANAR_A: return self.cdata.contents.offsetA
+        return self.cdata.contents.offset # AVS_PLANAR_Y or AVS_PLANAR_G
     
     def get_read_ptr(self, plane=avs.AVS_PLANAR_Y):
-        return by_ref_at(self.get_frame_buffer().contents.data, self.get_offset(plane))
+        return avs_get_read_ptr_p(self.cdata, plane) #V6
+        #return by_ref_at(self.get_frame_buffer().contents.data, self.get_offset(plane))
     
     def is_writable(self):
-        return self.cdata.contents.refcount == 1 and self.get_frame_buffer().contents.refcount == 1
+        return bool(avs_is_writable(self.cdata)) #V6
+        #return self.cdata.contents.refcount == 1 and self.get_frame_buffer().contents.refcount == 1
     
     def get_write_ptr(self, plane=avs.AVS_PLANAR_Y):
+        return avs_get_write_ptr_p(self.cdata, plane) #V6
+'''
         if (not plane or plane == avs.AVS_PLANAR_Y):
             if self.is_writable():
                 self.get_frame_buffer().contents.sequence_number += 1
                 return by_ref_at(self.get_frame_buffer().contents.data, self.get_offset(plane))
             else: return 0
         return by_ref_at(self.get_frame_buffer().contents.data, self.get_offset(plane))
-
+ '''
         
 class AVS_Value(object):
     
@@ -1206,6 +1152,112 @@ avs_new_video_frame_a.restype=ctypes.POINTER(AVS_VideoFrame_C)
 avs_new_video_frame_a.argtypes=[AVS_ScriptEnvironment,AVS_VideoInfo,ctypes.c_int]
 #avs_new_video_frame_a.errcheck=CreateAVS_VideoFrameCT
 
+# AVS_VideoInfo
+
+avs_is_yv24=avidll.avs_is_yv24 #V6
+avs_is_yv24.restype=ctypes.c_int
+avs_is_yv24.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_is_yv16=avidll.avs_is_yv16 #V6
+avs_is_yv16.restype=ctypes.c_int
+avs_is_yv16.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_is_yv12=avidll.avs_is_yv12 #V6
+avs_is_yv12.restype=ctypes.c_int
+avs_is_yv12.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_is_yv411=avidll.avs_is_yv411 #V6
+avs_is_yv411.restype=ctypes.c_int
+avs_is_yv411.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_is_y8=avidll.avs_is_y8 #V6
+avs_is_y8.restype=ctypes.c_int
+avs_is_y8.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_is_color_space=avidll.avs_is_color_space #V6
+avs_is_color_space.restype=ctypes.c_int
+avs_is_color_space.argtypes=[ctypes.POINTER(AVS_VideoInfo_C), ctypes.c_int]
+
+avs_get_plane_width_subsampling=avidll.avs_get_plane_width_subsampling #V6
+avs_get_plane_width_subsampling.restype=ctypes.c_int
+avs_get_plane_width_subsampling.argtypes=[ctypes.POINTER(AVS_VideoInfo_C), ctypes.c_int]
+
+avs_get_plane_height_subsampling=avidll.avs_get_plane_height_subsampling #V6
+avs_get_plane_height_subsampling.restype=ctypes.c_int
+avs_get_plane_height_subsampling.argtypes=[ctypes.POINTER(AVS_VideoInfo_C), ctypes.c_int]
+
+avs_bits_per_pixel=avidll.avs_bits_per_pixel #V6
+avs_bits_per_pixel.restype=ctypes.c_int
+avs_bits_per_pixel.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_bytes_from_pixels=avidll.avs_bytes_from_pixels #V6
+avs_bytes_from_pixels.restype=ctypes.c_int
+avs_bytes_from_pixels.argtypes=[ctypes.POINTER(AVS_VideoInfo_C), ctypes.c_int]
+
+avs_bmp_size=avidll.avs_bmp_size #V6
+avs_bmp_size.restype=ctypes.c_int
+avs_bmp_size.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+avs_row_size=avidll.avs_row_size #V6
+avs_row_size.restype=ctypes.c_int
+avs_row_size.argtypes=[ctypes.POINTER(AVS_VideoInfo_C), ctypes.c_int]
+
+# AVS+ function in "safe mode" to accept classic Avisynth which have such no new functions
+try: # AVS+ ?
+    # Avisynth+ extensions
+    avs_is_rgb48=avidll.avs_is_rgb48 #AVS+
+    avs_is_rgb48.restype=ctypes.c_int
+    avs_is_rgb48.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_rgb64=avidll.avs_is_rgb64 #AVS+
+    avs_is_rgb64.restype=ctypes.c_int
+    avs_is_rgb64.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_444=avidll.avs_is_444 #AVS+
+    avs_is_444.restype=ctypes.c_int
+    avs_is_444.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_422=avidll.avs_is_422 #AVS+
+    avs_is_422.restype=ctypes.c_int
+    avs_is_422.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_420=avidll.avs_is_420 #AVS+
+    avs_is_420.restype=ctypes.c_int
+    avs_is_420.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_y=avidll.avs_is_y #AVS+
+    avs_is_y.restype=ctypes.c_int
+    avs_is_y.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_yuva=avidll.avs_is_yuva #AVS+
+    avs_is_yuva.restype=ctypes.c_int
+    avs_is_yuva.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_planar_rgb=avidll.avs_is_planar_rgb #AVS+
+    avs_is_planar_rgb.restype=ctypes.c_int
+    avs_is_planar_rgb.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_is_planar_rgba=avidll.avs_is_planar_rgba #AVS+
+    avs_is_planar_rgba.restype=ctypes.c_int
+    avs_is_planar_rgba.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_num_components=avidll.avs_num_components #AVS+
+    avs_num_components.restype=ctypes.c_int
+    avs_num_components.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_component_size=avidll.avs_component_size #AVS+
+    avs_component_size.restype=ctypes.c_int
+    avs_component_size.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    avs_bits_per_component=avidll.avs_bits_per_component #AVS+
+    avs_bits_per_component.restype=ctypes.c_int
+    avs_bits_per_component.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+    # end of Avisynth+ extensions
+except: pass # do nothing when Avsynth+ extra functions are missing
+# todo: move them to wrapper functions which work in a fallback mode, 
+# e.g. bits_per_component returns always 8 (classic Avisynth 8 bit only) when avs_bits_per_component is missing
+
 avs_make_writable=avidll.avs_make_writable
 avs_make_writable.restype=ctypes.c_int
 avs_make_writable.argtypes=[AVS_ScriptEnvironment,
@@ -1309,6 +1361,30 @@ avs_copy_video_frame=avidll.avs_copy_video_frame
 avs_copy_video_frame.restype=ctypes.POINTER(AVS_VideoFrame_C)
 avs_copy_video_frame.argtypes=[AVS_VideoFrame]
 #avs_copy_video_frame.errcheck=CreateAVS_VideoFrameCT
+
+avs_get_pitch_p=avidll.avs_get_pitch_p #V6
+avs_get_pitch_p.restype=ctypes.c_int
+avs_get_pitch_p.argtypes=[ctypes.POINTER(AVS_VideoFrame_C), ctypes.c_int]
+
+avs_get_row_size_p=avidll.avs_get_row_size_p #V6
+avs_get_row_size_p.restype=ctypes.c_int
+avs_get_row_size_p.argtypes=[ctypes.POINTER(AVS_VideoFrame_C), ctypes.c_int]
+
+avs_get_height_p=avidll.avs_get_height_p #V6
+avs_get_height_p.restype=ctypes.c_int
+avs_get_height_p.argtypes=[ctypes.POINTER(AVS_VideoFrame_C), ctypes.c_int]
+
+avs_get_read_ptr_p=avidll.avs_get_read_ptr_p #V6
+avs_get_read_ptr_p.restype=ctypes.POINTER(ctypes.c_byte)
+avs_get_read_ptr_p.argtypes=[ctypes.POINTER(AVS_VideoFrame_C), ctypes.c_int]
+
+avs_is_writable=avidll.avs_is_writable #V6
+avs_is_writable.restype=ctypes.c_int
+avs_is_writable.argtypes=[ctypes.POINTER(AVS_VideoFrame_C)]
+
+avs_get_write_ptr_p=avidll.avs_get_write_ptr_p #V6
+avs_get_write_ptr_p.restype=ctypes.POINTER(ctypes.c_byte) # for BYTE *
+avs_get_write_ptr_p.argtypes=[ctypes.POINTER(AVS_VideoFrame_C), ctypes.c_int]
 
 avs_release_video_frame=avidll.avs_release_video_frame
 avs_release_video_frame.restype=None
