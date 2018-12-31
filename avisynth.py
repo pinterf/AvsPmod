@@ -647,6 +647,31 @@ class AVS_VideoInfo(object):
     def is_same_colorspace(self, vi):
         return (self.cdata.contents.pixel_type == vi.pixeltype) or (self.is_yv12() and vi.is_yv12())
 
+    # Avisynth+ extensions, they are callable even for Classic Avisynth where there functions originally missing
+    def is_rgb48(self):
+        return bool(avs_is_rgb48(self.cdata))
+    def is_rgb64(self):
+        return bool(avs_is_rgb64(self.cdata))
+    def is_444(self):
+        return bool(avs_is_444(self.cdata))
+    def is_422(self):
+        return bool(avs_is_422(self.cdata))
+    def is_420(self):
+        return bool(avs_is_420(self.cdata))
+    def is_y(self):
+        return bool(avs_is_y(self.cdata))
+    def is_yuva(self):
+        return bool(avs_is_yuva(self.cdata))
+    def is_planar_rgb(self):
+        return bool(avs_is_planar_rgb(self.cdata))
+    def is_planar_rgba(self):
+        return bool(avs_is_planar_rgba(self.cdata))
+    def num_components(self):
+        return avs_num_components(self.cdata)
+    def component_size(self):
+        return avs_component_sizes(self.cdata)
+    def bits_per_component(self):
+        return avs_bits_per_component(self.cdata)
 
 class AVS_Clip:
     def __init__(self, clip):
@@ -1202,61 +1227,116 @@ avs_row_size=avidll.avs_row_size #V6
 avs_row_size.restype=ctypes.c_int
 avs_row_size.argtypes=[ctypes.POINTER(AVS_VideoInfo_C), ctypes.c_int]
 
+# Avisynth+ extensions
+# fallback: simulations of missing avs+ functions
+# returns False (0) if e.g. avs_is_rgb48 does not exists
+is_XY_color_space_like_FUNC_TYPE = FUNCTYPE(ctypes.c_int, ctypes.POINTER(AVS_VideoInfo_C))
+num_components_like_FUNC_TYPE = FUNCTYPE(ctypes.c_int, ctypes.POINTER(AVS_VideoInfo_C))
+component_size_like_FUNC_TYPE = FUNCTYPE(ctypes.c_int, ctypes.POINTER(AVS_VideoInfo_C))
+bits_per_component_like_FUNC_TYPE = FUNCTYPE(ctypes.c_int, ctypes.POINTER(AVS_VideoInfo_C))
+
+def internal_fake_is_XY_returns_False(arg):
+    return 0
+
+def internal_fake_component_size(arg):
+    return 1 # always 1 bytes for classic Avisynth
+
+def internal_fake_num_components(arg):
+    if avs_is_y8(arg) != 0: return 1 # Y only
+    if avs_is_rgb32(arg) != 0: return 4 # R,G,B,A
+    return 3 # all other is 3 (planes, components)
+
+def internal_fake_bits_per_component(arg):
+    return 8 # always 8 bits/component for classic Avisynth
+
 # AVS+ function in "safe mode" to accept classic Avisynth which have such no new functions
 try: # AVS+ ?
-    # Avisynth+ extensions
     avs_is_rgb48=avidll.avs_is_rgb48 #AVS+
     avs_is_rgb48.restype=ctypes.c_int
     avs_is_rgb48.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_rgb48=is_XY_color_space_like_FUNC_TYPE(internal_fake_is_XY_returns_False) # fallback to always False
 
+try:
     avs_is_rgb64=avidll.avs_is_rgb64 #AVS+
     avs_is_rgb64.restype=ctypes.c_int
     avs_is_rgb64.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_rgb64=is_XY_color_space_like_FUNC_TYPE(internal_fake_is_XY_returns_False) # fallback to always False
 
+try:
     avs_is_444=avidll.avs_is_444 #AVS+
-    avs_is_444.restype=ctypes.c_int
-    avs_is_444.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_444=avidll.avs_is_yv24 # fallback
 
+avs_is_444.restype=ctypes.c_int
+avs_is_444.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+
+try:
     avs_is_422=avidll.avs_is_422 #AVS+
-    avs_is_422.restype=ctypes.c_int
-    avs_is_422.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_422=avidll.avs_is_yv16 # fallback
+avs_is_422.restype=ctypes.c_int
+avs_is_422.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
 
+try:
     avs_is_420=avidll.avs_is_420 #AVS+
-    avs_is_420.restype=ctypes.c_int
-    avs_is_420.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_420=avidll.avs_is_yv12 # fallback
+avs_is_420.restype=ctypes.c_int
+avs_is_420.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
 
+try:
     avs_is_y=avidll.avs_is_y #AVS+
-    avs_is_y.restype=ctypes.c_int
-    avs_is_y.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_y=avidll.avs_is_y8 # fallback
+avs_is_y.restype=ctypes.c_int
+avs_is_y.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
 
+try:
     avs_is_yuva=avidll.avs_is_yuva #AVS+
     avs_is_yuva.restype=ctypes.c_int
     avs_is_yuva.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_yuva=is_XY_color_space_like_FUNC_TYPE(internal_fake_is_XY_returns_False) # fallback to always False
 
+try:
     avs_is_planar_rgb=avidll.avs_is_planar_rgb #AVS+
     avs_is_planar_rgb.restype=ctypes.c_int
     avs_is_planar_rgb.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_planar_rgb=is_XY_color_space_like_FUNC_TYPE(internal_fake_is_XY_returns_False) # fallback to always False
 
+try:
     avs_is_planar_rgba=avidll.avs_is_planar_rgba #AVS+
     avs_is_planar_rgba.restype=ctypes.c_int
     avs_is_planar_rgba.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_is_planar_rgba=is_XY_color_space_like_FUNC_TYPE(internal_fake_is_XY_returns_False) # fallback to always False
 
+try:
     avs_num_components=avidll.avs_num_components #AVS+
     avs_num_components.restype=ctypes.c_int
     avs_num_components.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_num_components=num_components_like_FUNC_TYPE(internal_fake_num_components)
 
+try:
     avs_component_size=avidll.avs_component_size #AVS+
     avs_component_size.restype=ctypes.c_int
     avs_component_size.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_component_size=component_size_like_FUNC_TYPE(internal_fake_component_size) # always return 1
 
+try:
     avs_bits_per_component=avidll.avs_bits_per_component #AVS+
     avs_bits_per_component.restype=ctypes.c_int
     avs_bits_per_component.argtypes=[ctypes.POINTER(AVS_VideoInfo_C)]
+except:
+    avs_bits_per_component=bits_per_component_like_FUNC_TYPE(internal_fake_bits_per_component) # always returns 8
 
-    # end of Avisynth+ extensions
-except: pass # do nothing when Avsynth+ extra functions are missing
-# todo: move them to wrapper functions which work in a fallback mode, 
-# e.g. bits_per_component returns always 8 (classic Avisynth 8 bit only) when avs_bits_per_component is missing
+# end of Avisynth+ extensions
+# todo: move them to wrapper functions 
 
 avs_make_writable=avidll.avs_make_writable
 avs_make_writable.restype=ctypes.c_int
