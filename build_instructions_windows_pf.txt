@@ -1,7 +1,6 @@
 ﻿How to build
 ------------
 
-
 To build AvsPmod, check that all the requirements are met and run 
 'python -O build.py'. A ZIP or 7z archive will be created on its 
 same directory.
@@ -9,12 +8,12 @@ same directory.
 When you have multiple installations (2.7 x86/x64, 3.7 x86/x64), make sure you are using the proper python executable.
 
 Current code base is using Python 2.7 and "classic" wxPython (up to 3.0.2).
-Sor please ignore Python v3.7 and wxWidget 4.x parts ("experimental") they are really only for experimenting
+So please ignore Python v3.7 and wxWidget 4.x parts ("experimental") they are really only for experimenting at the moment
 
 Requirements
 ------------
 
-- Install Python 2.7 (Original project info: versions 2.6-2.7 supported)
+- Install Python 2.7 (Original project info: versions 2.6-2.7 supported - we don't bother with 2.6)
   Note that you need to install x86 and x64 separately if you want them both.
   Latest 2.7: 
   https://www.python.org/ftp/python/2.7.15/python-2.7.15.amd64.msi
@@ -51,7 +50,7 @@ Requirements
     https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/wxPython3.0-win32-3.0.2.0-py27.exe/download
     (run installers for x86 and x64)
   
-  Experimental:
+  Experimental (normally skip this part):
   Install 4.0 or above (to be tested) (supports Python 2.7 and the new 3.x versions). No separate install files, just use package manager.
     pip install "wxPython>=4.0.0,<5.0.0" --force-reinstall
     Note: dont use wxversion in setup.py, it works only for "classic" and was removed from wxPython Phoenix (v4.x)
@@ -65,13 +64,13 @@ Requirements
 - py2exe
   For Python 2.x: https://sourceforge.net/projects/py2exe/files/
 
-  Experimental for Python v3.7:
+  Experimental for Python v3.7 (normally skip this part):
   Unfortunately the development of py2exe stopped.
   py2exe does not exist for Python version 3.6 and up (they could not follow byte-code changes)
   From Python 3.3: https://pypi.org/project/py2exe/
   Todo: consider pyInstaller: https://www.pyinstaller.org/
     pip install pyinstaller (even works from Python 2.7)
-  or nuitka: https://stackoverflow.com/questions/49831163/compile-python-3-6-script-to-standalone-exe-with-nuitka-on-windows-10
+  or nuitka?: https://stackoverflow.com/questions/49831163/compile-python-3-6-script-to-standalone-exe-with-nuitka-on-windows-10
 
 - cffi and its dependencies (needed only for x86-64)
 
@@ -110,7 +109,7 @@ Some extra dependencies are needed for building a 64-bit package:
         14.0       3.5, 3.6
         10.0       3.3, 3.4
         9.0        2.6, 2.7, 3.0, 3.1, 3.2 
-      /*
+
       https://wiki.python.org/moin/WindowsCompilers
       - Microsoft Visual C++ 14.0 standalone: Build Tools for Visual Studio 2017 (x86, x64, ARM, ARM64)
         This is a standalone version of Visual C++ 14.0 compiler, you don't need to install Visual Studio 2017.
@@ -119,11 +118,9 @@ Some extra dependencies are needed for building a 64-bit package:
         https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017
       - Microsoft Visual C++ 14.0 with Visual Studio 2017 (x86, x64, ARM, ARM64)
         Visual Studio 2017 contains Visual C++ 14.0 compiler. The setuptools Python package version must be at least 34.4.0.
-      */
 
 - avisynth_c.h
-  December 2018, PF: update under progress.
-  (take the modified 2.5 header used by x264 no longer up to date)
+  December 2018, from avisynth+ project, modified a bit
 
 
 Microsoft runtime DLLs
