@@ -1311,11 +1311,37 @@ class AVS_VideoInfo(object):
     
     def set_fps(self, numerator, denominator):
         avs.avs_set_fps(self.cdata, numerator, denominator)
-'''
-    # left out intentionally
+
     def is_same_colorspace(self, vi):
-        return bool(avs.avs_is_same_colorspace(self.cdata, vi))
-'''
+        return (self.pixel_type == vi.pixeltype) or (self.is_yv12() and vi.is_yv12())
+        # return bool(avs.avs_is_same_colorspace(self.cdata, vi)) not a real interface function
+
+    # Avisynth+ extensions
+    def is_rgb48(self):
+        return bool(avs.avs_is_rgb48(self.cdata))
+    def is_rgb64(self):
+        return bool(avs.avs_is_rgb64(self.cdata))
+    def is_444(self):
+        return bool(avs.avs_is_444(self.cdata))
+    def is_422(self):
+        return bool(avs.avs_is_422(self.cdata))
+    def is_420(self):
+        return bool(avs.avs_is_420(self.cdata))
+    def is_y(self):
+        return bool(avs.avs_is_y(self.cdata))
+    def is_yuva(self):
+        return bool(avs.avs_is_yuva(self.cdata))
+    def is_planar_rgb(self):
+        return bool(avs.avs_is_planar_rgb(self.cdata))
+    def is_planar_rgba(self):
+        return bool(avs.avs_is_planar_rgba(self.cdata))
+    def num_components(self):
+        return avs.avs_num_components(self.cdata)
+    def component_size(self):
+        return avs.avs_component_size(self.cdata)
+    def bits_per_component(self):
+        return avs.avs_bits_per_component(self.cdata)
+
 #todo avs+: avs_is_y, is_444, etc.
 
 class AVS_VideoFrame(object):
