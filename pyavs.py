@@ -376,7 +376,7 @@ class AvsClipBase:
                 if self.env.function_exists('AutoloadPlugins'): # AviSynth+
                     try:
                         self.env.invoke('AutoloadPlugins')
-                    except avisynth.AvisynthError, err:
+                    except avisynth.AvisynthError as err:
                         self.Framecount = oldFramecount
                         if not self.CreateErrorClip(err):
                             return
@@ -396,7 +396,7 @@ class AvsClipBase:
                 self.clip = self.env.invoke('Eval', [script, filename])
                 if not isinstance(self.clip, avisynth.AVS_Clip):
                     raise avisynth.AvisynthError("Not a clip")
-            except avisynth.AvisynthError, err:
+            except avisynth.AvisynthError as err:
                 self.Framecount = oldFramecount
                 if not self.CreateErrorClip(err):
                     return
@@ -413,7 +413,7 @@ class AvsClipBase:
             if self.env.function_exists('AutoloadPlugins'): # AviSynth+
                 try:
                     self.env.invoke('AutoloadPlugins')
-                except avisynth.AvisynthError, err:
+                except avisynth.AvisynthError as err:
                     self.Framecount = oldFramecount
                     if not self.CreateErrorClip(err):
                         return
@@ -428,7 +428,7 @@ class AvsClipBase:
                 self.clip = self.env.invoke('Eval', errText)
                 if not isinstance(self.clip, avisynth.AVS_Clip):
                     raise avisynth.AvisynthError("Not a clip")
-            except avisynth.AvisynthError, err:
+            except avisynth.AvisynthError as err:
                 return
             try:
                 if not isinstance(self.env.get_var('last'), avisynth.AVS_Clip):
@@ -530,7 +530,7 @@ class AvsClipBase:
             self.clip = self.BGR2RGB(self.clip)
         self.initialized = True
         if __debug__:
-            print u"AviSynth clip created successfully: '{0}'".format(self.name)
+            print(u"AviSynth clip created successfully: '{0}'".format(self.name))
 
     def __del__(self):
         if self.initialized:
@@ -540,7 +540,7 @@ class AvsClipBase:
             self.env.set_var("avsp_raw_clip", None)
             self.clip = None
             if __debug__:
-                print u"Deleting allocated video memory for '{0}'".format(self.name)
+                print(u"Deleting allocated video memory for '{0}'".format(self.name))
 
     def CreateErrorClip(self, err='', display_clip_error=False):
         fontFace, fontSize, fontColor = global_vars.options['errormessagefont'][:3]   # GPo fontColor
@@ -579,7 +579,7 @@ class AvsClipBase:
                 self.DisplayHeight = vi.height + 10  # GPo + 10
             else:
                 self.clip = clip
-        except avisynth.AvisynthError, err:
+        except avisynth.AvisynthError as err:
             return False
         return True
 
@@ -623,7 +623,7 @@ class AvsClipBase:
                     vi = self.display_clip.get_video_info()
                     self.DisplayWidth = vi.width
                     self.DisplayHeight = vi.height
-            except avisynth.AvisynthError, err:
+            except avisynth.AvisynthError as err:
                 return self.CreateErrorClip(display_clip_error=True)
         if isinstance(matrix, basestring):
             self.matrix = matrix
@@ -641,7 +641,7 @@ class AvsClipBase:
         if swapuv and self.IsYUV and not self.IsY8:
             try:
                 self.display_clip = self.env.invoke('SwapUV', self.display_clip)
-            except avisynth.AvisynthError, err:
+            except avisynth.AvisynthError as err:
                 return self.CreateErrorClip(display_clip_error=True)
         vi = self.display_clip.get_video_info()
         self.DisplayWidth = vi.width
@@ -931,7 +931,7 @@ if os.name == 'nt':
     NULL = 0
     OF_READ = UINT(0)
     BI_RGB = 0
-    GENERIC_WRITE = 0x40000000L
+    GENERIC_WRITE = 0x40000000
     CREATE_ALWAYS = 2
     FILE_ATTRIBUTE_NORMAL  = 0x00000080
 
@@ -1019,7 +1019,7 @@ if os.name == 'nt':
                 args = [self.display_clip, self.matrix, self.interlaced]
                 try:
                     self.display_clip = self.env.invoke("ConvertToRGB32", args)
-                except avisynth.AvisynthError, err:
+                except avisynth.AvisynthError as err:
                     return False
             return True
 
@@ -1078,7 +1078,7 @@ else:
                 merge_args = [b, clip, r, "RGB24"]
                 self.display_clip = self.env.invoke("MergeRGB", merge_args)
                 return True
-            except avisynth.AvisynthError, err:
+            except avisynth.AvisynthError as err:
                 return False
 
         def DrawFrame(self, frame, dc=None, offset=(0,0), size=None):
@@ -1109,46 +1109,46 @@ else:
 if __name__ == '__main__':
     AVI = AvsClip('Version().ConvertToYV12()', 'example.avs')
     if AVI.initialized:
-        print 'Width =', AVI.Width
-        print 'Height =', AVI.Height
-        print 'Framecount =', AVI.Framecount
-        print 'Framerate =', AVI.Framerate
-        print 'FramerateNumerator =', AVI.FramerateNumerator
-        print 'FramerateDenominator =', AVI.FramerateDenominator
-        print 'Audiorate =', AVI.Audiorate
-        print 'Audiolength =', AVI.Audiolength
-        #~ print 'AudiolengthF =', AVI.AudiolengthF
-        print 'Audiochannels =', AVI.Audiochannels
-        print 'Audiobits =', AVI.Audiobits
-        print 'IsAudioFloat =', AVI.IsAudioFloat
-        print 'IsAudioInt =', AVI.IsAudioInt
-        print 'Colorspace =', AVI.Colorspace
-        print 'IsRGB =', AVI.IsRGB
-        print 'IsRGB24 =', AVI.IsRGB24
-        print 'IsRGB32 =', AVI.IsRGB32
-        print 'IsYUV =', AVI.IsYUV
-        print 'IsYUY2 =', AVI.IsYUY2
-        print 'IsYV24 =', AVI.IsYV24
-        print 'IsYV16 =', AVI.IsYV16
-        print 'IsYV12 =', AVI.IsYV12
-        print 'IsYV411 =', AVI.IsYV411
-        print 'IsY8 =', AVI.IsY8
-        print 'IsPlanar =', AVI.IsPlanar
-        print 'IsInterleaved =', AVI.IsInterleaved
-        print 'IsFieldBased =', AVI.IsFieldBased
-        print 'IsFrameBased =', AVI.IsFrameBased
-        print 'GetParity =', AVI.GetParity
-        print 'HasAudio =', AVI.HasAudio
-        print 'HasVideo =', AVI.HasVideo
+        print('Width =', AVI.Width)
+        print('Height =', AVI.Height)
+        print('Framecount =', AVI.Framecount)
+        print('Framerate =', AVI.Framerate)
+        print('FramerateNumerator =', AVI.FramerateNumerator)
+        print('FramerateDenominator =', AVI.FramerateDenominator)
+        print('Audiorate =', AVI.Audiorate)
+        print('Audiolength =', AVI.Audiolength)
+        #~ print('AudiolengthF =', AVI.AudiolengthF)
+        print('Audiochannels =', AVI.Audiochannels)
+        print('Audiobits =', AVI.Audiobits)
+        print('IsAudioFloat =', AVI.IsAudioFloat)
+        print('IsAudioInt =', AVI.IsAudioInt)
+        print('Colorspace =', AVI.Colorspace)
+        print('IsRGB =', AVI.IsRGB)
+        print('IsRGB24 =', AVI.IsRGB24)
+        print('IsRGB32 =', AVI.IsRGB32)
+        print('IsYUV =', AVI.IsYUV)
+        print('IsYUY2 =', AVI.IsYUY2)
+        print('IsYV24 =', AVI.IsYV24)
+        print('IsYV16 =', AVI.IsYV16)
+        print('IsYV12 =', AVI.IsYV12)
+        print('IsYV411 =', AVI.IsYV411)
+        print('IsY8 =', AVI.IsY8)
+        print('IsPlanar =', AVI.IsPlanar)
+        print('IsInterleaved =', AVI.IsInterleaved)
+        print('IsFieldBased =', AVI.IsFieldBased)
+        print('IsFrameBased =', AVI.IsFrameBased)
+        print('GetParity =', AVI.GetParity)
+        print('HasAudio =', AVI.HasAudio)
+        print('HasVideo =', AVI.HasVideo)
     else:
-        print AVI.error_message
+        print(AVI.error_message)
     AVI = None
 
     AVI = AvsClip('Blackness()', 'test.avs')
     if AVI.initialized:
-        print AVI.Width
+        print(AVI.Width)
     else:
-        print AVI.error_message
+        print(AVI.error_message)
     AVI = None
 
     script = """Version().ConvertToYV12()
@@ -1158,16 +1158,16 @@ if __name__ == '__main__':
     env = avisynth.AVS_ScriptEnvironment(3)
     try:
         clip = env.invoke('Eval', script)
-    except avisynth.AvisynthError, err:
-        print err
+    except avisynth.AvisynthError as err:
+        print(err)
     else:
         if isinstance(clip, avisynth.AVS_Clip):
             AVI = AvsClip(clip, env=env)
             AVI._GetFrame(100)
             AVI = None
         else:
-            print clip.get_value()
+            print(clip.get_value())
     env = None
 
-    print "Exit program."
+    print("Exit program.")
 
