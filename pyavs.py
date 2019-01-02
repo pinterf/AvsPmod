@@ -476,6 +476,19 @@ class AvsClipBase:
         self.IsYV411 = self.vi.is_yv411()
         self.IsY8 = self.vi.is_y8()
 
+        # Possible even for classic avs:
+        '''
+        self.IsRGB48 = self.vi.isRGB48
+        self.IsRGB64 = self.vi.isRGB64
+        self.Is444 = self.vi.is_444() # use this one instead of IsYV24
+        self.Is422 = self.vi.is_422() # use this one instead of IsYV16
+        self.Is420 = self.vi.is_420() # use this one instead of IsYV12
+        self.IsY = self.vi.is_y() # use this one instead of IsY8
+        self.num_components = self.vi.num_components() # 1-4
+        self.component_size = self.vi.component_size() # 1, 2, 4 (in bytes)
+        self.bits_per_component = self.vi.bits_per_component() # 8,10,12,14,16,32
+        '''
+
         # GPo, avs plus get colorspace
         cName = ''
         if self.env.function_exists('PixelType') and self.clip:
