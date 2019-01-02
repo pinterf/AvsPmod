@@ -18,6 +18,8 @@
 src/
 lib/
 tools/*
+Release/*
+Debug/*
 !tools/*.py
 !tools/*.presets
 macros/*.*
@@ -32,3 +34,5 @@ __translation_new.py
 .VS/*
 BuildTools/*
 build/*
+avisynth_cffi_ext.c
+avisynth_cffi_ext.pyd
