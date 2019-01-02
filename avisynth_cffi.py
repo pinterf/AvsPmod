@@ -1243,7 +1243,7 @@ class AVS_VideoInfo(object):
         return bool(avs.avs_is_tff(self.cdata))
     
     def is_v_plane_first(self): # interface.cpp
-        return not self.is_y8() and self.is_planar() and (self.pixel_type & \
+        return not self.is_y() and self.is_planar() and (self.pixel_type & \
             (avs.AVS_CS_VPLANEFIRST | avs.AVS_CS_UPLANEFIRST)) \
             == avs.AVS_CS_VPLANEFIRST # Shouldn't use this
     

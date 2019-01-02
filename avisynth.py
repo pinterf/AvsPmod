@@ -553,7 +553,7 @@ class AVS_VideoInfo(object):
     
     def is_v_plane_first(self):
         # todo: move to avs_is_y when it's safe for classic avisynth
-        return not self.is_y8() and self.is_planar() and (self.cdata.contents.pixel_type & 
+        return not self.is_y() and self.is_planar() and (self.cdata.contents.pixel_type & 
             (avs.AVS_CS_VPLANEFIRST | avs.AVS_CS_UPLANEFIRST)) == avs.AVS_CS_VPLANEFIRST # Shouldn't use this
     
     def get_plane_width_subsampling(self, plane): # Subsampling in bitshifts!
