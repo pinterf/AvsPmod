@@ -669,7 +669,7 @@ class AVS_VideoInfo(object):
     def num_components(self):
         return avs_num_components(self.cdata)
     def component_size(self):
-        return avs_component_sizes(self.cdata)
+        return avs_component_size(self.cdata)
     def bits_per_component(self):
         return avs_bits_per_component(self.cdata)
 
