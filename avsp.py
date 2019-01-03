@@ -15489,7 +15489,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                               self.play_speed_factor, interval0, interval, factor))
                         self.increment = 0
                         self.previous_time = self.play_initial_time
-                        self.play_timer_id = self.timeSetEvent(interval,
+                    self.play_timer_id = self.timeSetEvent(interval,
                         self.play_timer_resolution, self.callback_c, factor, periodic)
 
                 WindowsTimer(interval, playback_timer)
