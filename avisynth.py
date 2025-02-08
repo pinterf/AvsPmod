@@ -1141,10 +1141,12 @@ class AVS_Value(object):
     # free memory
 
     def release(self):
+        """ Oh, Oh, Oh... bad pinterf ;) (r4176 not allowed)
         if self.is_array():
             for index in range(self.array_size()):
                 AVS_Value(self.cdata.d.a[index], self.env)
         avs_release_value(self)
+        """
         if self.is_defined():
             self.set_void()
 
