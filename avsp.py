@@ -24517,7 +24517,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
         if event:
             event.Skip()
     """
-    # LeaveVideoWindow will lose its functionality after a certain period of time if wx Leav_Window is used
+    # required, or LeaveVideoWindow will lose its functionality after a certain period of time if wx Leav_Window is used
     def OnMouseEventsVideoWindow(self, event):
         if event.Leaving():
             if self.overlayData:
@@ -24535,8 +24535,8 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                     self.zoom_antialias = True
                     self.videoWindow.Refresh()
                     self.videoWindow.Update()
-        #else:
-        event.Skip()
+        else:
+            event.Skip()
     """
     def OnMouseLeaveVideoWindow(self, event):
         if self.overlayData:
@@ -27558,6 +27558,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
         # It would be a good idea to deprecate this function as macro in favour of
         # using 'GetSourceString' for both sources and plugins (already does so)
 
+        #~ script = self.currentScript
         if not filename or not os.path.isfile(filename):
             if os.name == 'nt':
                 filefilter = (_('All supported plugins') + ' (*.dll;*.vdf;*.vdplugin;*.vfp)|*.dll;*.vdf;*.vdplugin;*.vfp|' +
@@ -27917,6 +27918,8 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
             else:
                 slider.RemoveBookmark(value, bmtype, refresh=refreshProgram)
         if refreshProgram:
+            #if value is None or not (bmtype in (1,2)):
+                #self.UpdateBookmarkMenu()
             if refreshVideo and self.trimDialog.IsShown():
                 self.ShowVideoFrame()
 
@@ -27953,7 +27956,39 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 if self.separatevideowindow:
                     self.frameTextCtrl2.SetForegroundColour(wx.BLACK)
                     self.frameTextCtrl2.Refresh()
+    """
+    def AddFrameBookmark(self, value, bmtype=0, toggle=True, refreshVideo=True, refreshProgram=True):
+        sliderList = self.GetVideoSliderList()
+        if not toggle:
+            for slider in sliderList:
+                slider.SetBookmark(value, bmtype)
+        elif bmtype in (1,2):
+            for slider in sliderList:
+                slider.SetBookmark(value, bmtype, refresh=refreshProgram)
+        else:
+            for slider in sliderList:
+                if value in slider.bookmarks:
+                    # DeleteFrameBookmark uses also an slider loop, so we need to break the loop
+                    self.DeleteFrameBookmark(value, 0, refreshProgram=refreshProgram)
+                    color = wx.BLACK
+                    break
+                else:
+                    slider.SetBookmark(value, 0, refresh=refreshProgram)
+                    color = wx.RED
+            value = str(value)
+            if value == self.frameTextCtrl.GetLineText(0):
+                self.frameTextCtrl.SetForegroundColour(color)
+                self.frameTextCtrl.Refresh()
+            if self.separatevideowindow and value == self.frameTextCtrl2.GetLineText(0):
+                self.frameTextCtrl2.SetForegroundColour(color)
+                self.frameTextCtrl2.Refresh()
+        if refreshProgram:
+            #~if not bmtype in (1,2):
+                #self.UpdateBookmarkMenu()
+            if refreshVideo and self.trimDialog.IsShown():
+                self.ShowVideoFrame()
 
+    """
     def AddFrameBookmark(self, value, bmtype=0, toggle=True, refreshVideo=True, refreshProgram=True):
         ''' Since slider bookmarks has direct access to script bookmarks only der first slider bookmarks
             must be change if bmtype 0 (bookmark).
@@ -27995,11 +28030,14 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
     def OffsetBookmarks(self, offset):
         if not offset:
             return
+
         bookmarkList = [frame + offset for frame, title in
                          self.GetBookmarkFrameList().iteritems()]
         self.DeleteAllFrameBookmarks(bmtype=0)
         self.MacroSetBookmark(frame for frame in bookmarkList if frame >= 0)
-        """ alternativ
+
+
+        """
         bm = self.GetBookmarkDict()
         newBm = {}
         for key in bm.keys():
@@ -28007,6 +28045,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
         #self.DeleteAllFrameBookmarks(bmtype=0)
         self.SetTabBookmarks(newBm)
         """
+
 
     def DeleteAllSelections(self, refresh=True):
         for slider in self.GetVideoSliderList():
@@ -30501,7 +30540,7 @@ class MainFrame(wxp.Frame, WndProcHookMixin):
                 displayFilter = ''
                 for line in self.options['displayfilter'].split('\n'):
                     if line and not line.lstrip().startswith('#'):
-                        displayFilter += line + '\n'
+                        displayFilter += line
                 return displayFilter.strip()
             return None
 

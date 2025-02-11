@@ -38,11 +38,6 @@ AvsPmod can only provide a user-friendly editor if he has no problems with the n
 If, for example, there is a '-' in the file name of the dll, AvsPmod will report it at startup, 
 please rename this dll and replace the '-' with a '_'
 
---------------------------
-Version 2.7.9.0 [2025-02-08] GPo
---------------------------
-* Crash fixed with new Avisynth version 3.73 r4176. I hope. 
-* Bugfix: The Display Filter removed the line break \n from every line. Therefore, combining Avisynth lines with \ was not possible.
 
 --------------------------
 Version 2.7.8.9 [2024-12-23] GPo
