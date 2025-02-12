@@ -1790,7 +1790,9 @@ class AVS_Value(object):
         if self.is_array():
             for index in range(self.array_size()):
                 avs.avs_release_value_w(avs.avs_array_elt_w(self.cdata, index))
-        avs.avs_release_value_w(self.cdata)
+        else:
+            avs.avs_release_value_w(self.cdata)
+
         if self.is_defined():
             self.set_void()
 

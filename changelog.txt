@@ -38,6 +38,11 @@ AvsPmod can only provide a user-friendly editor if he has no problems with the n
 If, for example, there is a '-' in the file name of the dll, AvsPmod will report it at startup, 
 please rename this dll and replace the '-' with a '_'
 
+--------------------------
+Version 2.7.9.2 [2025-02-12] GPo
+--------------------------
+* Fixed Version that is now working with newer Aviynth API 11 Versions. RIFE should also no longer cause any problems.
+The thanks go to pinterf.
 
 --------------------------
 Version 2.7.8.9 [2024-12-23] GPo
