@@ -1789,7 +1789,9 @@ class AVS_Value(object):
     def release(self):
         if self.is_array():
             for index in range(self.array_size()):
-                avs.avs_release_value_w(avs.avs_array_elt_w(self.cdata, index))
+                element = avs.avs_array_elt_w(self.cdata, index)
+                if not avs.avs_is_array_w(element):  # Only release non-array elements
+                    avs.avs_release_value_w(element)
         else:
             avs.avs_release_value_w(self.cdata)
 
